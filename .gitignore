@@ -1,0 +1,32 @@
+# Doc.
+htmldocs/
+
+# Source.
+src/**/*.js
+
+# Examples.
+examples/**
+!examples/**/config.nims
+!examples/**/*.nim
+!examples/config.nims
+!examples/*.nim
+
+# Tests.
+tests/**/test_*
+!tests/**/test_*.nim
+!tests/**/test_*.nims
+
+# Testament.
+nimcache/
+testresults/
+outputExpected.txt
+outputGotten.txt
+testresults.html
+tests/megatest
+tests/megatest.nim
+
+# Temp.
+*~
+tmp/
+
+# vim: set sts=2 et sw=2:
