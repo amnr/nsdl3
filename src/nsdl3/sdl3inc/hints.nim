@@ -13,7 +13,7 @@ macro gen_hint_enum_type(enum_name: string,
 
   for val in values:
     let hname = newIdentNode "HINT_" & $val
-    let hval  = newStrLitNode "SDL" & $val
+    let hval  = newStrLitNode "SDL_" & $val
     fields.add(
       nnkEnumFieldDef.newNimNode.add(hname).add(
         nnkCommand.newNimNode.add(newIdentNode "cstring", hval)
