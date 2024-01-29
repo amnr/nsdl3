@@ -10,6 +10,7 @@ type
     ##  Gamepad.
 
   GamepadType* {.size: cint.sizeof.} = enum
+    ##  Gamepad type.
     GAMEPAD_TYPE_UNKNOWN  = 0
     GAMEPAD_TYPE_STANDARD
     GAMEPAD_TYPE_XBOX360
@@ -26,17 +27,8 @@ const
   GAMEPAD_TYPE_MAX* = GamepadType.high.int + 1
 
 type
-  GamepadCaps* = distinct uint32
-
-const
-  GAMEPAD_CAP_MONO_LED*       = 0x00000001  ##  This gamepad has an LED that has adjustable brightness.
-  GAMEPAD_CAP_RGB_LED*        = 0x00000002  ##  This gamepad has an LED that has adjustable color.
-  GAMEPAD_CAP_PLAYER_LED*     = 0x00000004  ##  This gamepad has a player LED.
-  GAMEPAD_CAP_RUMBLE*         = 0x00000010  ##  This gamepad has left/right rumble.
-  GAMEPAD_CAP_TRIGGER_RUMBLE* = 0x00000020  ##  This gamepad has simple trigger rumble.
-
-type
   GamepadButton* {.size: cint.sizeof.} = enum   # XXX: size.
+    ##  The list of buttons available on a gamepad.
     GAMEPAD_BUTTON_INVALID = -1
     GAMEPAD_BUTTON_SOUTH
     GAMEPAD_BUTTON_EAST
@@ -65,6 +57,7 @@ const
 
 type
   GamepadButtonLabel* {.size: cint.sizeof.} = enum
+    ##  The set of gamepad button labels.
     GAMEPAD_BUTTON_LABEL_UNKNOWN
     GAMEPAD_BUTTON_LABEL_A
     GAMEPAD_BUTTON_LABEL_B
@@ -77,6 +70,7 @@ type
 
 type
   GamepadAxis* {.size: cint.sizeof.} = enum
+    ##  The list of axes available on a gamepad.
     GAMEPAD_AXIS_INVALID = -1
     GAMEPAD_AXIS_LEFTX
     GAMEPAD_AXIS_LEFTY

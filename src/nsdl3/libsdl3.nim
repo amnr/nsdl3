@@ -50,12 +50,19 @@ import sdl3inc/version
 import sdl3inc/video
 # XXX: vulkan
 
+when defined macosx:
+  const lib_paths = [
+    "libSDL3.dylib"
+  ]
 when defined posix:
-  const lib_paths = [ "libSDL3.so", "libSDL3.so.0" ]
-elif defined macosx:
-  const lib_paths = [ "libSDL3.dynlib" ]
+  const lib_paths = [
+    "libSDL3.so",
+    "libSDL3.so.0"
+  ]
 elif defined windows:
-  const lib_paths = [ "SDL3.dll" ]
+  const lib_paths = [
+    "SDL3.dll"
+  ]
 else:
   {.fatal: "unsupported platform.".}
 
@@ -359,8 +366,6 @@ dlgencalls "sdl3", lib_paths:
   when use_joystick:
 
     proc SDL_CloseJoystick(joystick: Joystick)
-
-    proc SDL_GetJoystickCaps(joystick: Joystick): JoystickCaps
 
     proc SDL_GetJoystickGUID(joystick: Joystick): JoystickGUID
 

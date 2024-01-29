@@ -1,6 +1,6 @@
 # Package info.
 version       = "0.9.5"
-author        = "Amun-Ra"
+author        = "Amun"
 description   = "High level SDL 3.0 shared library wrapper"
 license       = "NCSA OR MIT OR Zlib"
 srcDir        = "src"

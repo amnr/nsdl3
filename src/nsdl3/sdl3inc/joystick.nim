@@ -22,6 +22,7 @@ func `==`*(a: JoystickID, b: uint32): bool {.borrow.}
 
 type
   JoystickType* {.size: cint.sizeof.} = enum
+    ##  Joystick type.
     JOYSTICK_TYPE_UNKNOWN
     JOYSTICK_TYPE_GAMEPAD
     JOYSTICK_TYPE_WHEEL
@@ -33,15 +34,9 @@ type
     JOYSTICK_TYPE_ARCADE_PAD
     JOYSTICK_TYPE_THROTTLE
 
-  JoystickCaps* {.size: cint.sizeof.} = enum
-    JOYSTICK_CAP_MONO_LED       = 0x00000001  ##  This joystick has an LED that has adjustable brightness.
-    JOYSTICK_CAP_RGB_LED        = 0x00000002  ##  This joystick has an LED that has adjustable color.
-    JOYSTICK_CAP_PLAYER_LED     = 0x00000004  ##  This joystick has a player LED.
-    JOYSTICK_CAP_RUMBLE         = 0x00000010  ##  This joystick has left/right rumble.
-    JOYSTICK_CAP_TRIGGER_RUMBLE = 0x00000020  ##  This joystick has simple trigger rumble.
-
   JoystickPowerLevel* {.size: cint.sizeof.} = enum
-    JOYSTICK_POWER_UNKNOWN = -1
+    ##  Joystick power level.
+    JOYSTICK_POWER_UNKNOWN  = -1
     JOYSTICK_POWER_EMPTY    ##  <= 5%.
     JOYSTICK_POWER_LOW      ##  <= 20%.
     JOYSTICK_POWER_MEDIUM   ##  <= 70%.
@@ -80,6 +75,14 @@ type
 
 const
   VIRTUAL_JOYSTICK_DESC_VERSION*  = 1
+
+const
+  # XXX: make distinct type.
+  PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN*       = cstring"SDL.joystick.cap.mono_led"
+  PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN*        = cstring"SDL.joystick.cap.rgb_led"
+  PROP_JOYSTICK_CAP_PLAYER_LED_BOOLEAN*     = cstring"SDL.joystick.cap.player_led"
+  PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN*         = cstring"SDL.joystick.cap.rumble"
+  PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN* = cstring"SDL.joystick.cap.trigger_rumble"
 
 type
   Hat* = distinct byte

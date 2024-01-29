@@ -11,7 +11,7 @@ const
   ALPHA_TRANSPARENT*  = byte 0
 
 type
-  PixelType* {.size: cint.sizeof.} = enum
+  PixelType {.size: cint.sizeof.} = enum
     ##  Pixel type.
     PIXELTYPE_UNKNOWN
     PIXELTYPE_INDEX1
@@ -27,13 +27,13 @@ type
     PIXELTYPE_ARRAYF32
     PIXELTYPE_INDEX2
 
-  BitmapOrder* {.size: cint.sizeof.} = enum
+  BitmapOrder {.size: cint.sizeof.} = enum
     ##  Bitmap pixel order (high bit to low bit).
     BITMAPORDER_NONE
     BITMAPORDER_4321
     BITMAPORDER_1234
 
-  PackedOrder* {.size: cint.sizeof.} = enum
+  PackedOrder {.size: cint.sizeof.} = enum
     ##  Packed component order (high bit to low bit).
     PACKEDORDER_NONE
     PACKEDORDER_XRGB
@@ -45,15 +45,17 @@ type
     PACKEDORDER_ABGR
     PACKEDORDER_BGRA
 
-  ArrayOrder* {.size: cint.sizeof.} = enum
-    ##  Array component order (low byte to high byte).
-    ARRAYORDER_NONE,
-    ARRAYORDER_RGB,
-    ARRAYORDER_UNUSED1    ##  SDL2 compat.
-    ARRAYORDER_UNUSED2    ##  SDL2 compat.
+  ArrayOrder {.size: cint.sizeof.} = enum
+    ##  Array component order, low byte to high byte.
+    ARRAYORDER_NONE
+    ARRAYORDER_RGB
+    ARRAYORDER_RGBA
+    ARRAYORDER_ARGB
     ARRAYORDER_BGR
+    ARRAYORDER_BGRA
+    ARRAYORDER_ABGR
 
-  PackedLayout* {.size: cint.sizeof.} = enum
+  PackedLayout {.size: cint.sizeof.} = enum
     ##  Packed component layout.
     PACKEDLAYOUT_NONE
     PACKEDLAYOUT_332
@@ -117,6 +119,18 @@ type
     PIXELFORMAT_BGRA8888    = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_BGRA, PACKEDLAYOUT_8888, 32, 4)
     PIXELFORMAT_RGB24       = define_pixelformat(PIXELTYPE_ARRAYU8, ARRAYORDER_RGB, 0, 24, 3)
     PIXELFORMAT_BGR24       = define_pixelformat(PIXELTYPE_ARRAYU8, ARRAYORDER_BGR, 0, 24, 3)
+    PIXELFORMAT_RGB48       = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_RGB, 0, 48, 3)
+    PIXELFORMAT_RGBA64      = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_RGBA, 0, 64, 4)
+    PIXELFORMAT_ARGB64      = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_ARGB, 0, 64, 4)
+    PIXELFORMAT_BGR48       = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_BGR, 0, 48, 3)
+    PIXELFORMAT_BGRA64      = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_BGRA, 0, 64, 4)
+    PIXELFORMAT_ABGR64      = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_ABGR, 0, 64, 4)
+    PIXELFORMAT_RGB48_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_RGB, 0, 48, 3)
+    PIXELFORMAT_RGBA64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_RGBA, 0, 64, 4)
+    PIXELFORMAT_ARGB64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_ARGB, 0, 64, 4)
+    PIXELFORMAT_BGR48_FLOAT   = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_BGR, 0, 48, 3)
+    PIXELFORMAT_BGRA64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_BGRA, 0, 64, 4)
+    PIXELFORMAT_ABGR64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_ABGR, 0, 64, 4)
     PIXELFORMAT_INDEX2LSB   = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_4321, 0, 2, 0)
     PIXELFORMAT_INDEX2MSB   = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_1234, 0, 2, 0)
 
