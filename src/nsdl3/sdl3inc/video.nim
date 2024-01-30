@@ -215,6 +215,7 @@ type
     PROP_WINDOW_CREATE_Y_NUMBER                             = cstring"y"
     PROP_WINDOW_CREATE_COCOA_WINDOW_POINTER                 = cstring"cocoa.window"
     PROP_WINDOW_CREATE_COCOA_VIEW_POINTER                   = cstring"cocoa.view"
+    PROP_WINDOW_CREATE_WAYLAND_SCALE_TO_DISPLAY             = cstring"wayland.scale_to_display"
     PROP_WINDOW_CREATE_WAYLAND_SURFACE_ROLE_CUSTOM_BOOLEAN  = cstring"wayland.surface_role_custom"
     PROP_WINDOW_CREATE_WAYLAND_CREATE_EGL_WINDOW_BOOLEAN    = cstring"wayland.create_egl_window"
     PROP_WINDOW_CREATE_WAYLAND_WL_SURFACE_POINTER           = cstring"wayland.wl_surface"

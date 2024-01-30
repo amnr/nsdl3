@@ -739,6 +739,7 @@ dlgencalls "sdl3", lib_paths:
   #     proc SDL_BlendMode *blendMode)
   # int SDL_GetRenderDrawColor(SDL_Renderer *renderer,
   #     Uint8 *r, Uint8 *g, Uint8 *b, Uint8 *a)
+  # extern DECLSPEC int SDLCALL SDL_GetRenderDrawColorFloat(SDL_Renderer *renderer, float *r, float *g, float *b, float *a);
   # const char *SDL_GetRenderDriver(int index)
   # SDL_Renderer * SDL_GetRendererFromTexture(SDL_Texture *texture);
   # int SDL_GetRenderLogicalPresentation(SDL_Renderer *renderer,
@@ -763,6 +764,8 @@ dlgencalls "sdl3", lib_paths:
   #     proc SDL_BlendMode *blendMode)
   # int SDL_GetTextureColorMod(SDL_Texture *texture,
   #     Uint8 *r, Uint8 *g, Uint8 *b)
+  # extern DECLSPEC int SDLCALL SDL_GetTextureAlphaModFloat(SDL_Texture *texture, float *alpha);
+  # extern DECLSPEC int SDLCALL SDL_GetTextureColorModFloat(SDL_Texture *texture, float *r, float *g, float *b);
   # SDL_PropertiesID SDL_GetTextureProperties(SDL_Texture *texture)
   # int SDL_GetTextureScaleMode(SDL_Texture *texture,
   #     proc SDL_ScaleMode *scaleMode)
@@ -801,7 +804,7 @@ dlgencalls "sdl3", lib_paths:
   ): cint
 
   # int SDL_RenderGeometryRaw(SDL_Renderer *renderer, SDL_Texture *texture,
-  #     const float *xy, int xy_stride, const SDL_Color *color,
+  #     const float *xy, int xy_stride, const SDL_FColor *color,
   #     int color_stride, const float *uv, int uv_stride, int num_vertices,
   #     const void *indices, int num_indices, int size_indices)
 
@@ -855,6 +858,8 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_SetRenderDrawColor(renderer: Renderer, r, g, b, a: byte): cint
 
+  # extern DECLSPEC int SDLCALL SDL_SetRenderDrawColorFloat(SDL_Renderer *renderer, float r, float g, float b, float a);
+
   # int SDL_SetRenderLogicalPresentation(SDL_Renderer *renderer,
   #     int w, int h, SDL_RendererLogicalPresentation mode,
   #     proc SDL_ScaleMode scale_mode)
@@ -870,12 +875,16 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_SetTextureAlphaMod(texture: Texture, alpha: byte): cint
 
+  # extern DECLSPEC int SDLCALL SDL_SetTextureAlphaModFloat(SDL_Texture *texture, float alpha);
+
   proc SDL_SetTextureBlendMode(
     texture     : Texture,
     blend_mode  : BlendMode
   ): cint
 
   proc SDL_SetTextureColorMod(texture: Texture, r, g, b: byte): cint
+
+  # extern DECLSPEC int SDLCALL SDL_SetTextureColorModFloat(SDL_Texture *texture, float r, float g, float b);
 
   proc SDL_SetTextureScaleMode(texture: Texture,
                                scale_mode: ScaleMode): cint

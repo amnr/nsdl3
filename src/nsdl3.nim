@@ -604,10 +604,6 @@ when use_joystick:
     ##  `SDL_CloseJoystick`
     SDL_CloseJoystick joystick
 
-  proc GetJoystickCaps*(joystick: Joystick): JoystickCaps =
-    ##  `SDL_GetJoystickCaps`
-    SDL_GetJoystickCaps joystick
-
   proc GetJoystickGUID*(joystick: Joystick): JoystickGUID {.inline.} =
     ##  `SDL_GetJoystickGUID`
     SDL_GetJoystickGUID joystick

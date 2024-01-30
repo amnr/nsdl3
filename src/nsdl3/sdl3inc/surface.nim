@@ -93,50 +93,6 @@ func pixels32*(self: ptr Surface): ptr UncheckedArray[uint32] {.inline.} =
 # typedef int (SDLCALL *SDL_blit) (struct SDL_Surface *src, const SDL_Rect *srcrect,
 #                                  struct SDL_Surface *dst, const SDL_Rect *dstrect);
 
-type
-  ColorPrimaries* {.size: cint.sizeof.} = enum
-    ##  The color primaries,
-    ##  as described by https://www.itu.int/rec/T-REC-H.273-201612-S/en
-    COLOR_PRIMARIES_UNKNOWN       = 0
-    COLOR_PRIMARIES_BT709         = 1
-    COLOR_PRIMARIES_UNSPECIFIED   = 2
-    COLOR_PRIMARIES_BT470M        = 4
-    COLOR_PRIMARIES_BT470BG       = 5
-    COLOR_PRIMARIES_BT601         = 6
-    COLOR_PRIMARIES_SMPTE240      = 7
-    COLOR_PRIMARIES_GENERIC_FILM  = 8
-    COLOR_PRIMARIES_BT2020        = 9
-    COLOR_PRIMARIES_XYZ           = 10
-    COLOR_PRIMARIES_SMPTE431      = 11
-    COLOR_PRIMARIES_SMPTE432      = 12   ##  DCI P3.
-    COLOR_PRIMARIES_EBU3213       = 22
-
-const
-  COLOR_PRIMARIES_IEC61966_2_4*   = COLOR_PRIMARIES_BT709
-
-type
-  TransferCharacteristics* {.size: cint.sizeof.} = enum
-    ##  The transfer characteristics,
-    ##  as described by https://www.itu.int/rec/T-REC-H.273-201612-S/en
-    TRANSFER_CHARACTERISTICS_UNKNOWN        = 0
-    TRANSFER_CHARACTERISTICS_BT709          = 1
-    TRANSFER_CHARACTERISTICS_UNSPECIFIED    = 2
-    TRANSFER_CHARACTERISTICS_BT470M         = 4   ##  2.2 gamma.
-    TRANSFER_CHARACTERISTICS_BT470BG        = 5   ##  2.8 gamma.
-    TRANSFER_CHARACTERISTICS_BT601          = 6
-    TRANSFER_CHARACTERISTICS_SMPTE240       = 7
-    TRANSFER_CHARACTERISTICS_LINEAR         = 8
-    TRANSFER_CHARACTERISTICS_LOG100         = 9
-    TRANSFER_CHARACTERISTICS_LOG100_SQRT10  = 10
-    TRANSFER_CHARACTERISTICS_IEC61966       = 11
-    TRANSFER_CHARACTERISTICS_BT1361         = 12
-    TRANSFER_CHARACTERISTICS_SRGB           = 13
-    TRANSFER_CHARACTERISTICS_BT2020_10BIT   = 14
-    TRANSFER_CHARACTERISTICS_BT2020_12BIT   = 15
-    TRANSFER_CHARACTERISTICS_SMPTE2084      = 16   ##  PQ.
-    TRANSFER_CHARACTERISTICS_SMPTE428       = 17
-    TRANSFER_CHARACTERISTICS_HLG            = 18
-
 func mustlock*(self: ptr Surface): bool {.inline.} =
   ##  Evaluates to true if the surface needs to be locked before access.
   (self.flags and RLEACCEL) != 0
@@ -153,8 +109,7 @@ type
 
 const
   # XXX: distinct type
-  PROP_SURFACE_COLOR_PRIMARIES_NUMBER*          = cstring"SDL.surface.color_primaries"
-  PROP_SURFACE_TRANSFER_CHARACTERISTICS_NUMBER* = cstring"SDL.surface.transfer_characteristics"
+  PROP_SURFACE_COLORSPACE_NUMBER*               = cstring"SDL.surface.colorspace"
   PROP_SURFACE_MAXCLL_NUMBER*                   = cstring"SDL.surface.maxCLL"
   PROP_SURFACE_MAXFALL_NUMBER*                  = cstring"SDL.surface.maxFALL"
 

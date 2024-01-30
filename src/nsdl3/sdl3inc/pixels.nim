@@ -131,6 +131,13 @@ type
     PIXELFORMAT_BGR48_FLOAT   = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_BGR, 0, 48, 3)
     PIXELFORMAT_BGRA64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_BGRA, 0, 64, 4)
     PIXELFORMAT_ABGR64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_ABGR, 0, 64, 4)
+    PIXELFORMAT_RGB96_FLOAT   = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_RGB, 0, 96, 3)
+    PIXELFORMAT_RGBA128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_RGBA, 0, 128, 4)
+    PIXELFORMAT_ARGB128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_ARGB, 0, 128, 4)
+    PIXELFORMAT_BGR96_FLOAT   = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_BGR, 0, 96, 3)
+    PIXELFORMAT_BGRA128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_BGRA, 0, 128, 4)
+    PIXELFORMAT_ABGR128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_ABGR, 0, 128, 4)
+
     PIXELFORMAT_INDEX2LSB   = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_4321, 0, 2, 0)
     PIXELFORMAT_INDEX2MSB   = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_1234, 0, 2, 0)
 
@@ -176,7 +183,8 @@ func pixel_flag(format: PixelFormatEnum): uint32 {.inline.} =
 func pixel_type(format: PixelFormatEnum): uint32 {.inline.} =
   (format.uint32 shr 24) and 0x0f
 
-#define SDL_PIXELORDER(X)   (((X) >> 20) & 0x0F)
+func pixel_order(format: PixelFormatEnum): uint32 {.inline.} =
+  (format.uint32 shr 20) and 0x0f
 
 func pixel_layout(format: PixelFormatEnum): uint32 {.inline.} =
   (format.uint32 shr 16) and 0x0f
@@ -231,16 +239,172 @@ func is_array*(format: PixelFormatEnum): bool {.inline.} =
   )
 
 func is_alpha*(format: PixelFormatEnum): bool {.inline.} =
-  format.is_fourcc.not and (
-    (format.pixel_type == PACKEDORDER_ARGB.uint32) or
-    (format.pixel_type == PACKEDORDER_RGBA.uint32) or
-    (format.pixel_type == PACKEDORDER_ABGR.uint32) or
-    (format.pixel_type == PACKEDORDER_BGRA.uint32)
+  format.is_packed and (
+    (format.pixel_order == PACKEDORDER_ARGB.uint32) or
+    (format.pixel_order == PACKEDORDER_RGBA.uint32) or
+    (format.pixel_order == PACKEDORDER_ABGR.uint32) or
+    (format.pixel_order == PACKEDORDER_BGRA.uint32)
   )
 
 func is_10bit*(format: PixelFormatEnum): bool {.inline.} =
-  (format.pixel_type == PIXELTYPE_PACKED32.uint32) and
-  (format.pixel_layout == PACKEDLAYOUT_2101010.uint32)
+  format.is_fourcc.not and (
+    (format.pixel_type == PIXELTYPE_PACKED32.uint32) and
+    (format.pixel_layout == PACKEDLAYOUT_2101010.uint32)
+  )
+
+func is_float*(format: PixelFormatEnum): bool {.inline.} =
+  format.is_fourcc.not and (
+    (format.pixel_type == PIXELTYPE_ARRAYF16.uint32) or
+    (format.pixel_type == PIXELTYPE_ARRAYF32.uint32)
+  )
+
+type
+  ColorType* {.size: cint.sizeof.} = enum
+    ##  The color type.
+    COLOR_TYPE_UNKNOWN  = 0
+    COLOR_TYPE_RGB      = 1
+    COLOR_TYPE_YCBCR    = 2
+
+  ColorRange* {.size: cint.sizeof.} = enum
+    ##  The color range,
+    ##  as described by https://www.itu.int/rec/R-REC-BT.2100-2-201807-I/en.
+    COLOR_RANGE_UNKNOWN = 0
+    COLOR_RANGE_LIMITED = 1
+    COLOR_RANGE_FULL    = 2
+
+  ColorPrimaries* {.size: cint.sizeof.} = enum
+    ##  The color primaries,
+    ##  as described by https://www.itu.int/rec/T-REC-H.273-201612-S/en.
+    COLOR_PRIMARIES_UNKNOWN       = 0
+    COLOR_PRIMARIES_BT709         = 1
+    COLOR_PRIMARIES_UNSPECIFIED   = 2
+    COLOR_PRIMARIES_BT470M        = 4
+    COLOR_PRIMARIES_BT470BG       = 5
+    COLOR_PRIMARIES_BT601         = 6
+    COLOR_PRIMARIES_SMPTE240      = 7
+    COLOR_PRIMARIES_GENERIC_FILM  = 8
+    COLOR_PRIMARIES_BT2020        = 9
+    COLOR_PRIMARIES_XYZ           = 10
+    COLOR_PRIMARIES_SMPTE431      = 11
+    COLOR_PRIMARIES_SMPTE432      = 12    ##  DCI P3.
+    COLOR_PRIMARIES_EBU3213       = 22
+    COLOR_PRIMARIES_CUSTOM        = 31
+
+  TransferCharacteristics* {.size: cint.sizeof.} = enum
+    ##  The transfer characteristics,
+    ##  as described by https://www.itu.int/rec/T-REC-H.273-201612-S/en.
+    TRANSFER_CHARACTERISTICS_UNKNOWN        = 0
+    TRANSFER_CHARACTERISTICS_BT709          = 1
+    TRANSFER_CHARACTERISTICS_UNSPECIFIED    = 2
+    TRANSFER_CHARACTERISTICS_GAMMA22        = 4
+    TRANSFER_CHARACTERISTICS_GAMMA28        = 5
+    TRANSFER_CHARACTERISTICS_BT601          = 6
+    TRANSFER_CHARACTERISTICS_SMPTE240       = 7
+    TRANSFER_CHARACTERISTICS_LINEAR         = 8
+    TRANSFER_CHARACTERISTICS_LOG100         = 9
+    TRANSFER_CHARACTERISTICS_LOG100_SQRT10  = 10
+    TRANSFER_CHARACTERISTICS_IEC61966       = 11
+    TRANSFER_CHARACTERISTICS_BT1361         = 12
+    TRANSFER_CHARACTERISTICS_SRGB           = 13
+    TRANSFER_CHARACTERISTICS_BT2020_10BIT   = 14
+    TRANSFER_CHARACTERISTICS_BT2020_12BIT   = 15
+    TRANSFER_CHARACTERISTICS_PQ             = 16
+    TRANSFER_CHARACTERISTICS_SMPTE428       = 17
+    TRANSFER_CHARACTERISTICS_HLG            = 18
+    TRANSFER_CHARACTERISTICS_CUSTOM         = 31
+
+  MatrixCoefficients* {.size: cint.sizeof.} = enum
+    ##  The matrix coefficients,
+    ##  as described by https://www.itu.int/rec/T-REC-H.273-201612-S/en.
+    MATRIX_COEFFICIENTS_IDENTITY            = 0
+    MATRIX_COEFFICIENTS_BT709               = 1
+    MATRIX_COEFFICIENTS_UNSPECIFIED         = 2
+    MATRIX_COEFFICIENTS_FCC                 = 4
+    MATRIX_COEFFICIENTS_BT470BG             = 5
+    MATRIX_COEFFICIENTS_BT601               = 6
+    MATRIX_COEFFICIENTS_SMPTE240            = 7
+    MATRIX_COEFFICIENTS_YCGCO               = 8
+    MATRIX_COEFFICIENTS_BT2020_NCL          = 9
+    MATRIX_COEFFICIENTS_BT2020_CL           = 10
+    MATRIX_COEFFICIENTS_SMPTE2085           = 11
+    MATRIX_COEFFICIENTS_CHROMA_DERIVED_NCL  = 12
+    MATRIX_COEFFICIENTS_CHROMA_DERIVED_CL   = 13
+    MATRIX_COEFFICIENTS_ICTCP               = 14
+    MATRIX_COEFFICIENTS_CUSTOM              = 31
+
+  ChromaLocation* {.size: cint.sizeof.} = enum
+    ##  The chroma sample location.
+    CHROMA_LOCATION_NONE      = 0
+    CHROMA_LOCATION_LEFT      = 1
+    CHROMA_LOCATION_CENTER    = 2
+    CHROMA_LOCATION_TOPLEFT   = 3
+
+func define_colorspace(typ: ColorType, range: ColorRange,
+                       primaries: ColorPrimaries,
+                       transfer: TransferCharacteristics,
+                       matrix: MatrixCoefficients,
+                       chroma: ChromaLocation): uint32 =
+  ##  Colorspace definition.
+  (typ.uint32 shl 28) or (range.uint32 shl 24) or (chroma.uint32 shl 20) or
+  (primaries.uint32 shl 10) or (transfer.uint32 shl 5) or (matrix.uint32 shl 0)
+
+#func COLORSPACETYPE(x)       (SDL_ColorType)(((X) >> 28) & 0x0F)
+#func COLORSPACERANGE(x)      (SDL_ColorRange)(((X) >> 24) & 0x0F)
+#func COLORSPACECHROMA(x)     (SDL_ChromaLocation)(((X) >> 20) & 0x0F)
+#func COLORSPACEPRIMARIES(x)  (SDL_ColorPrimaries)(((X) >> 10) & 0x1F)
+#func COLORSPACETRANSFER(x)   (SDL_TransferCharacteristics)(((X) >> 5) & 0x1F)
+#func COLORSPACEMATRIX(x)     (SDL_MatrixCoefficients)((X) & 0x1F)
+
+type
+  Colorspace* {.size: cint.sizeof.} = enum
+    ##  The color space.
+    COLORSPACE_UNKNOWN
+    COLORSPACE_SCRGB          = define_colorspace(COLOR_TYPE_RGB,
+                                  COLOR_RANGE_FULL,
+                                  COLOR_PRIMARIES_BT709,
+                                  TRANSFER_CHARACTERISTICS_LINEAR,
+                                  MATRIX_COEFFICIENTS_UNSPECIFIED,
+                                  CHROMA_LOCATION_NONE)
+    COLORSPACE_SRGB           = define_colorspace(COLOR_TYPE_RGB,
+                                  COLOR_RANGE_FULL,
+                                  COLOR_PRIMARIES_BT709,
+                                  TRANSFER_CHARACTERISTICS_SRGB,
+                                  MATRIX_COEFFICIENTS_UNSPECIFIED,
+                                  CHROMA_LOCATION_NONE)
+    COLORSPACE_HDR10          = define_colorspace(COLOR_TYPE_RGB,
+                                  COLOR_RANGE_FULL,
+                                  COLOR_PRIMARIES_BT2020,
+                                  TRANSFER_CHARACTERISTICS_PQ,
+                                  MATRIX_COEFFICIENTS_UNSPECIFIED,
+                                  CHROMA_LOCATION_NONE)
+    COLORSPACE_BT709_LIMITED  = define_colorspace(COLOR_TYPE_YCBCR,
+                                  COLOR_RANGE_LIMITED,
+                                  COLOR_PRIMARIES_BT709,
+                                  TRANSFER_CHARACTERISTICS_BT709,
+                                  MATRIX_COEFFICIENTS_BT709,
+                                  CHROMA_LOCATION_LEFT)
+    COLORSPACE_BT601_LIMITED  = define_colorspace(COLOR_TYPE_YCBCR,
+                                  COLOR_RANGE_LIMITED,
+                                  COLOR_PRIMARIES_BT601,
+                                  TRANSFER_CHARACTERISTICS_BT601,
+                                  MATRIX_COEFFICIENTS_BT601,
+                                  CHROMA_LOCATION_LEFT)
+    COLORSPACE_BT709_FULL     = define_colorspace(COLOR_TYPE_YCBCR,
+                                  COLOR_RANGE_FULL,
+                                  COLOR_PRIMARIES_BT709,
+                                  TRANSFER_CHARACTERISTICS_BT709,
+                                  MATRIX_COEFFICIENTS_BT709,
+                                  CHROMA_LOCATION_LEFT)
+    COLORSPACE_BT601_FULL     = define_colorspace(COLOR_TYPE_YCBCR,
+                                  COLOR_RANGE_FULL,
+                                  COLOR_PRIMARIES_BT601,
+                                  TRANSFER_CHARACTERISTICS_BT601,
+                                  MATRIX_COEFFICIENTS_BT601,
+                                  CHROMA_LOCATION_LEFT)
+
+const
+  COLORSPACE_RGB_DEFAULT* = COLORSPACE_SRGB
+    ##  The default colorspace for RGB surfaces if no colorspace is specified.
 
 type
   Color* {.final, pure.} = object
@@ -251,6 +415,21 @@ type
     a*                : byte
 
 func init*(T: typedesc[Color], r, g, b: byte, a: byte = 0xff): T {.inline.} =
+  T(r: r, g: g, b: b, a: a)
+
+type
+  FColor* {.final, pure.} = object
+    ##  The bits of this structure can be directly reinterpreted
+    ##  as a float-packed color which uses the `PIXELFORMAT_RGBA128_FLOAT`
+    ##  format.
+    r*  : cfloat
+    g*  : cfloat
+    b*  : cfloat
+    a*  : cfloat
+
+  FColour* = FColor
+
+func init*(T: typedesc[FColor], r, g, b: float32, a: float32): T {.inline.} =
   T(r: r, g: g, b: b, a: a)
 
 type

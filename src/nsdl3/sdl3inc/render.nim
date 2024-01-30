@@ -5,7 +5,7 @@
 
 {.push raises: [].}
 
-from pixels import Color
+from pixels import FColor
 from rect import FPoint
 
 type
@@ -33,10 +33,10 @@ type
   Vertex* {.final, pure.} = object
     ##  Vertex.
     position*   : FPoint    ##  Vertex position (`Renderer` coordinates).
-    color*      : Color     ##  Vertex color.
+    color*      : FColor    ##  Vertex color.
     tex_coord*  : FPoint    ##  Normalized texture coordinates (if needed).
 
-func init*(T: typedesc[Vertex], pos: FPoint, color: Color): T {.inline.} =
+func init*(T: typedesc[Vertex], pos: FPoint, color: FColor): T {.inline.} =
   T(position: pos, color: color, tex_coord: FPoint(x: 0, y: 0))
 
 type
@@ -68,10 +68,13 @@ type
 
   RenderCreateProperty* = enum
     ##  Render property.
-    PROP_RENDERER_CREATE_WINDOW_POINTER         = cstring"window"
-    PROP_RENDERER_CREATE_SURFACE_POINTER        = cstring"surface"
-    PROP_RENDERER_CREATE_NAME_STRING            = cstring"name"
-    PROP_RENDERER_CREATE_PRESENT_VSYNC_BOOLEAN  = cstring"present_vsync"
+    PROP_RENDERER_CREATE_WINDOW_POINTER                 = cstring"window"
+    PROP_RENDERER_CREATE_SURFACE_POINTER                = cstring"surface"
+    PROP_RENDERER_CREATE_NAME_STRING                    = cstring"name"
+    PROP_RENDERER_CREATE_INPUT_COLORSPACE_NUMBER        = cstring"input_colorspace"
+    PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER       = cstring"output_colorspace"
+    PROP_RENDERER_CREATE_COLORSPACE_CONVERSION_BOOLEAN  = cstring"colorspace_conversion"
+    PROP_RENDERER_CREATE_PRESENT_VSYNC_BOOLEAN          = cstring"present_vsync"
 
   RenderDeviceProperty* = enum
     PROP_RENDERER_D3D9_DEVICE_POINTER           = cstring"SDL.renderer.d3d9.device"
@@ -80,6 +83,7 @@ type
     PROP_RENDERER_D3D12_COMMAND_QUEUE_POINTER   = cstring"SDL.renderer.d3d12.command_queue"
 
   TextureCreateProperty* = enum
+    PROP_TEXTURE_CREATE_COLORSPACE_NUMBER           = cstring"colorspace"
     PROP_TEXTURE_CREATE_FORMAT_NUMBER               = cstring"format"
     PROP_TEXTURE_CREATE_ACCESS_NUMBER               = cstring"access"
     PROP_TEXTURE_CREATE_WIDTH_NUMBER                = cstring"width"
@@ -100,6 +104,7 @@ type
     PROP_TEXTURE_CREATE_OPENGLES2_TEXTURE_V_NUMBER  = cstring"opengles2.texture_v"
 
   TextureProperty* = enum
+    PROP_TEXTURE_COLORSPACE_NUMBER                  = cstring"SDL.texture.colorspace"
     PROP_TEXTURE_D3D11_TEXTURE_POINTER              = cstring"SDL.texture.d3d11.texture"
     PROP_TEXTURE_D3D11_TEXTURE_U_POINTER            = cstring"SDL.texture.d3d11.texture_u"
     PROP_TEXTURE_D3D11_TEXTURE_V_POINTER            = cstring"SDL.texture.d3d11.texture_v"
