@@ -99,18 +99,9 @@ func mustlock*(self: ptr Surface): bool {.inline.} =
 
 # XXX: typedef SDL_blit
 
-type
-  YuvConversionMode* {.size: cint.sizeof.} = enum
-    ##  The formula used for converting between YUV and RGB.
-    YUV_CONVERSION_JPEG       ##  Full range JPEG.
-    YUV_CONVERSION_BT601      ##  BT.601 (the default).
-    YUV_CONVERSION_BT709      ##  BT.709.
-    YUV_CONVERSION_AUTOMATIC  ##  BT.601 for SD content, BT.709 for HD content.
-
 const
   # XXX: distinct type
-  PROP_SURFACE_COLORSPACE_NUMBER*               = cstring"SDL.surface.colorspace"
-  PROP_SURFACE_MAXCLL_NUMBER*                   = cstring"SDL.surface.maxCLL"
-  PROP_SURFACE_MAXFALL_NUMBER*                  = cstring"SDL.surface.maxFALL"
+  PROP_SURFACE_COLORSPACE_NUMBER*         = cstring"SDL.surface.colorspace"
+  PROP_SURFACE_TONEMAP_OPERATOR_STRING*   = cstring"SDL.surface.tonemap"
 
 # vim: set sts=2 et sw=2:

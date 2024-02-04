@@ -614,6 +614,8 @@ dlgencalls "sdl3", lib_paths:
 
   when use_properties:
 
+    # int SDL_CopyProperties(SDL_PropertiesID src, SDL_PropertiesID dst);
+
     proc SDL_EnumerateProperties(
       props     : PropertiesID,
       callback  : EnumeratePropertiesCallback,
@@ -826,8 +828,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_RenderPresent(renderer: Renderer)
 
-  # int SDL_RenderReadPixels(SDL_Renderer *renderer, const SDL_Rect *rect,
-  #     Uint32 format, void *pixels, int pitch)
+  # int SDL_RenderReadPixels(SDL_Renderer *renderer, const SDL_Rect *rect)
 
   proc SDL_RenderRect(renderer: Renderer, rect: ptr FRect): cint
 
@@ -943,10 +944,12 @@ dlgencalls "sdl3", lib_paths:
   # int SDL_ConvertPixels(int width, int height, Uint32 src_format,
   #     const void *src, int src_pitch, Uint32 dst_format, void *dst,
   #     int dst_pitch)
+  # int SDL_ConvertPixelsAndColorspace(int width, int height, Uint32 src_format, SDL_Colorspace src_colorspace, const void *src, int src_pitch, Uint32 dst_format, SDL_Colorspace dst_colorspace, void *dst, int dst_pitch);
   # SDL_Surface *SDL_ConvertSurface(SDL_Surface *surface,
   #     const SDL_PixelFormat *format)
   # SDL_Surface *SDL_ConvertSurfaceFormat(SDL_Surface *surface,
   #     Uint32 pixel_format)
+  # SDL_Surface *SDL_ConvertSurfaceFormatAndColorspace(SDL_Surface *surface, Uint32 pixel_format, SDL_Colorspace colorspace);
   # SDL_Surface *SDL_CreateSurface (int width, int height, Uint32 format)
 
   # SDL_CreateRGBSurfaceFrom in SDL2.
@@ -969,10 +972,8 @@ dlgencalls "sdl3", lib_paths:
   # int SDL_GetSurfaceColorKey(SDL_Surface *surface, Uint32 *key)
   # int SDL_GetSurfaceColorMod(SDL_Surface *surface,
   #     Uint8 *r, Uint8 *g, Uint8 *b)
+  # int SDL_GetSurfaceColorspace(SDL_Surface *surface, SDL_Colorspace *colorspace);
   # SDL_PropertiesID SDL_GetSurfaceProperties(SDL_Surface *surface)
-  # SDL_YUV_CONVERSION_MODE SDL_GetYUVConversionMode(void)
-  # SDL_YUV_CONVERSION_MODE SDL_GetYUVConversionModeForResolution(int width,
-  #     int height)
 
   proc SDL_LoadBMP(file: cstring): SurfacePtr
 
@@ -1000,9 +1001,9 @@ dlgencalls "sdl3", lib_paths:
 
   # int SDL_SetSurfaceColorMod(SDL_Surface *surface,
   #     Uint8 r, Uint8 g, Uint8 b)
+  # int SDL_SetSurfaceColorspace(SDL_Surface *surface, SDL_Colorspace colorspace);
   # int SDL_SetSurfacePalette(SDL_Surface *surface, SDL_Palette *palette)
   # int SDL_SetSurfaceRLE(SDL_Surface *surface, int flag)
-  # void SDL_SetYUVConversionMode(SDL_YUV_CONVERSION_MODE mode)
   # int SDL_SoftStretch(SDL_Surface *src, const SDL_Rect *srcrect,
   #     proc SDL_Surface *dst, const SDL_Rect *dstrect, SDL_ScaleMode scaleMode)
   # SDL_bool SDL_SurfaceHasColorKey(SDL_Surface *surface)
