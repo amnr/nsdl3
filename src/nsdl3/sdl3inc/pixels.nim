@@ -138,14 +138,16 @@ type
     PIXELFORMAT_BGRA128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_BGRA, 0, 128, 16)
     PIXELFORMAT_ABGR128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_ABGR, 0, 128, 16)
 
-    PIXELFORMAT_INDEX2LSB   = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_4321, 0, 2, 0)
-    PIXELFORMAT_INDEX2MSB   = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_1234, 0, 2, 0)
+    PIXELFORMAT_INDEX2LSB     = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_4321, 0, 2, 0)
+    PIXELFORMAT_INDEX2MSB     = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_1234, 0, 2, 0)
 
     PIXELFORMAT_EXTERNAL_OES  = define_pixelfourcc('O', 'E', 'S', ' ')
+    PIXELFORMAT_P010          = define_pixelfourcc('P', '0', '1', '0')
     PIXELFORMAT_NV21          = define_pixelfourcc('N', 'V', '2', '1')
     PIXELFORMAT_NV12          = define_pixelfourcc('N', 'V', '1', '2')
     PIXELFORMAT_YV12          = define_pixelfourcc('Y', 'V', '1', '2')
     PIXELFORMAT_YUY2          = define_pixelfourcc('Y', 'U', 'Y', '2')
+    # PIXELFORMAT_P016          = define_pixelfourcc('P', '0', '1', '6')
     PIXELFORMAT_YVYU          = define_pixelfourcc('Y', 'V', 'Y', 'U')
     PIXELFORMAT_IYUV          = define_pixelfourcc('I', 'Y', 'U', 'V')
     PIXELFORMAT_UYVY          = define_pixelfourcc('U', 'Y', 'V', 'Y')
@@ -195,19 +197,10 @@ func bits_per_pixel*(format: PixelFormatEnum): int {.inline.} =
 func is_fourcc(format: PixelFormatEnum): bool {.inline.} =
   (format != PIXELFORMAT_UNKNOWN) and (format.pixel_flag != 1)
 
-#[
-#define SDL_BYTESPERPIXEL(X) \
-    (SDL_ISPIXELFORMAT_FOURCC(X) ? \
-        ((((X) == SDL_PIXELFORMAT_YUY2) || \
-          ((X) == SDL_PIXELFORMAT_UYVY) || \
-          ((X) == SDL_PIXELFORMAT_YVYU)) ? 2 : 1) : (((X) >> 0) & 0xFF))
-
-]#
-
 func bytes_per_pixel*(format: PixelFormatEnum): int {.inline.} =
   if format.is_fourcc:
     case format
-    of PIXELFORMAT_YUY2, PIXELFORMAT_UYVY, PIXELFORMAT_YVYU:
+    of PIXELFORMAT_YUY2, PIXELFORMAT_UYVY, PIXELFORMAT_YVYU, PIXELFORMAT_P010:
       2
     else:
       1
@@ -357,10 +350,11 @@ func define_colorspace(typ: ColorType, range: ColorRange,
 #func COLORSPACEMATRIX(x)     (SDL_MatrixCoefficients)((X) & 0x1F)
 
 # XXX:
-#define SDL_ISCOLORSPACE_YUV_BT601(X)       (SDL_COLORSPACEMATRIX(X) == SDL_MATRIX_COEFFICIENTS_BT601 || SDL_COLORSPACEMATRIX(X) == SDL_MATRIX_COEFFICIENTS_BT470BG)
-#define SDL_ISCOLORSPACE_YUV_BT709(X)       (SDL_COLORSPACEMATRIX(X) == SDL_MATRIX_COEFFICIENTS_BT709)
-#define SDL_ISCOLORSPACE_LIMITED_RANGE(X)   (SDL_COLORSPACERANGE(X) == SDL_COLOR_RANGE_LIMITED)
-#define SDL_ISCOLORSPACE_FULL_RANGE(X)      (SDL_COLORSPACERANGE(X) == SDL_COLOR_RANGE_LIMITED
+#define SDL_ISCOLORSPACE_MATRIX_BT601(X)        (SDL_COLORSPACEMATRIX(X) == SDL_MATRIX_COEFFICIENTS_BT601 || SDL_COLORSPACEMATRIX(X) == SDL_MATRIX_COEFFICIENTS_BT470BG)
+#define SDL_ISCOLORSPACE_MATRIX_BT709(X)        (SDL_COLORSPACEMATRIX(X) == SDL_MATRIX_COEFFICIENTS_BT709)
+#define SDL_ISCOLORSPACE_MATRIX_BT2020_NCL(X)   (SDL_COLORSPACEMATRIX(X) == SDL_MATRIX_COEFFICIENTS_BT2020_NCL)
+#define SDL_ISCOLORSPACE_LIMITED_RANGE(X)       (SDL_COLORSPACERANGE(X) != SDL_COLOR_RANGE_FULL)
+#define SDL_ISCOLORSPACE_FULL_RANGE(X)          (SDL_COLORSPACERANGE(X) == SDL_COLOR_RANGE_FULL)
 
 type
   Colorspace* {.size: cint.sizeof.} = enum
@@ -384,6 +378,7 @@ type
                                   TRANSFER_CHARACTERISTICS_PQ,
                                   MATRIX_COEFFICIENTS_UNSPECIFIED,
                                   CHROMA_LOCATION_NONE)
+
     COLORSPACE_BT709_LIMITED  = define_colorspace(COLOR_TYPE_YCBCR,
                                   COLOR_RANGE_LIMITED,
                                   COLOR_PRIMARIES_BT709,
@@ -396,6 +391,20 @@ type
                                   TRANSFER_CHARACTERISTICS_BT601,
                                   MATRIX_COEFFICIENTS_BT601,
                                   CHROMA_LOCATION_LEFT)
+    COLORSPACE_BT2020_LIMITED = define_colorspace(COLOR_TYPE_YCBCR,
+                                  COLOR_RANGE_LIMITED,
+                                  COLOR_PRIMARIES_BT2020,
+                                  TRANSFER_CHARACTERISTICS_PQ,
+                                  MATRIX_COEFFICIENTS_BT2020_NCL,
+                                  CHROMA_LOCATION_LEFT)
+
+    COLORSPACE_JPEG           = define_colorspace(COLOR_TYPE_YCBCR,
+                                  COLOR_RANGE_FULL,
+                                  COLOR_PRIMARIES_BT709,
+                                  TRANSFER_CHARACTERISTICS_BT601,
+                                  MATRIX_COEFFICIENTS_BT601,
+                                  CHROMA_LOCATION_NONE)
+
     COLORSPACE_BT709_FULL     = define_colorspace(COLOR_TYPE_YCBCR,
                                   COLOR_RANGE_FULL,
                                   COLOR_PRIMARIES_BT709,
@@ -408,21 +417,27 @@ type
                                   TRANSFER_CHARACTERISTICS_BT601,
                                   MATRIX_COEFFICIENTS_BT601,
                                   CHROMA_LOCATION_LEFT)
+    COLORSPACE_BT2020_FULL    = define_colorspace(COLOR_TYPE_YCBCR,
+                                  COLOR_RANGE_FULL,
+                                  COLOR_PRIMARIES_BT2020,
+                                  TRANSFER_CHARACTERISTICS_PQ,
+                                  MATRIX_COEFFICIENTS_BT2020_NCL,
+                                  CHROMA_LOCATION_LEFT)
 
 const
   COLORSPACE_RGB_DEFAULT* = COLORSPACE_SRGB
     ##  The default colorspace for RGB surfaces if no colorspace is specified.
 
-  COLORSPACE_YUV_DEFAULT* = COLORSPACE_BT601_LIMITED
+  COLORSPACE_YUV_DEFAULT* = COLORSPACE_JPEG
     ##  The default colorspace for YUV surfaces if no colorspace is specified.
 
 type
   Color* {.final, pure.} = object
     ##  Color.
-    r*                : byte
-    g*                : byte
-    b*                : byte
-    a*                : byte
+    r*  : byte
+    g*  : byte
+    b*  : byte
+    a*  : byte
 
 func init*(T: typedesc[Color], r, g, b: byte, a: byte = 0xff): T {.inline.} =
   T(r: r, g: g, b: b, a: a)
@@ -439,19 +454,20 @@ type
 
   FColour* = FColor
 
-func init*(T: typedesc[FColor], r, g, b: float32, a: float32): T {.inline.} =
-  T(r: r, g: g, b: b, a: a)
+func init*(T: typedesc[FColor], r, g, b: SomeFloat,
+           a: SomeFloat = 1.0): FColor {.inline.} =
+  T(r: r.cfloat, g: g.cfloat, b: b.cfloat, a: a.cfloat)
 
 type
   Palette* {.final, pure.} = object
-    ncolors*          : cint
-    colors*           : ptr UncheckedArray[Color]
-    version*          : uint32
-    refcount          : cint
+    ncolors*  : cint
+    colors*   : ptr UncheckedArray[Color]
+    version*  : uint32
+    refcount  : cint
 
   PixelFormat* {.bycopy, final, pure.} = object
     ##  Pixel format. All attributes are read-only.
-    format*           : uint32
+    format*           : PixelFormatEnum
     palette*          : ptr Palette
     bits_per_pixel*   : byte
     bytes_per_pixel*  : byte

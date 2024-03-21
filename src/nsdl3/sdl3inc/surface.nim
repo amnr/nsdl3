@@ -99,9 +99,11 @@ func mustlock*(self: ptr Surface): bool {.inline.} =
 
 # XXX: typedef SDL_blit
 
-const
-  # XXX: distinct type
-  PROP_SURFACE_COLORSPACE_NUMBER*         = cstring"SDL.surface.colorspace"
-  PROP_SURFACE_TONEMAP_OPERATOR_STRING*   = cstring"SDL.surface.tonemap"
+type
+  PropSurface* = enum
+    PROP_SURFACE_COLORSPACE_NUMBER        = cstring"SDL.surface.colorspace"
+    PROP_SURFACE_SDR_WHITE_POINT_FLOAT    = cstring"SDL.surface.SDR_white_point"
+    PROP_SURFACE_HDR_HEADROOM_FLOAT       = cstring"SDL.surface.HDR_headroom"
+    PROP_SURFACE_TONEMAP_OPERATOR_STRING  = cstring"SDL.surface.tonemap"
 
 # vim: set sts=2 et sw=2:

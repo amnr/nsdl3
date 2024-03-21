@@ -26,6 +26,7 @@ import sdl3inc/events
 when use_hints:
   import sdl3inc/hints
 import sdl3inc/init
+import sdl3inc/iostream
 when use_joystick:
   import sdl3inc/joystick
 # XXX: keyboard
@@ -41,7 +42,6 @@ when use_properties:
   import sdl3inc/properties
 import sdl3inc/rect
 import sdl3inc/render
-import sdl3inc/rwops
 # XXX: sensor
 import sdl3inc/surface
 import sdl3inc/timer
@@ -161,8 +161,8 @@ dlgencalls "sdl3", lib_paths:
     # SDL_bool SDL_AudioDevicePaused(SDL_AudioDeviceID dev)
     # int SDL_LoadWAV(const char *path, SDL_AudioSpec *spec, Uint8 **audio_buf,
     #     Uint32 *audio_len)
-    # int SDL_LoadWAV_RW(SDL_RWops *src, SDL_bool freesrc, SDL_AudioSpec *spec,
-    #     Uint8 **audio_buf, Uint32 *audio_len)
+    # int SDL_LoadWAV_IO(SDL_IOStream * src, SDL_bool closeio,
+    #     SDL_AudioSpec * spec, Uint8 ** audio_buf, Uint32 * audio_len);
     # int SDL_LockAudioStream(SDL_AudioStream *stream)
     # int SDL_MixAudioFormat(Uint8 *dst, const Uint8 *src,
     #     proc SDL_AudioFormat format, Uint32 len, int volume)
@@ -219,6 +219,26 @@ dlgencalls "sdl3", lib_paths:
     ): BlendMode
 
   # ------------------------------------------------------------------------- #
+  # <SDL3/SDL_camera.h>                                                       #
+  # ------------------------------------------------------------------------- #
+
+  # SDL_Surface * SDL_AcquireCameraFrame(SDL_Camera *camera, Uint64 *timestampNS);
+  # void SDL_CloseCamera(SDL_Camera *camera);
+  # char * SDL_GetCameraDeviceName(SDL_CameraDeviceID instance_id);
+  # SDL_CameraPosition SDL_GetCameraDevicePosition(SDL_CameraDeviceID instance_id);
+  # SDL_CameraDeviceID *SDL_GetCameraDevices(int *count);
+  # SDL_CameraSpec *SDL_GetCameraDeviceSupportedFormats(SDL_CameraDeviceID devid, int *count);
+  # const char *SDL_GetCameraDriver(int index);
+  # int SDL_GetCameraFormat(SDL_Camera *camera, SDL_CameraSpec *spec);
+  # SDL_CameraDeviceID SDL_GetCameraInstanceID(SDL_Camera *camera);
+  # int SDL_GetCameraPermissionState(SDL_Camera *camera);
+  # SDL_PropertiesID SDL_GetCameraProperties(SDL_Camera *camera);
+  # const char *SDL_GetCurrentCameraDriver(void);
+  # int SDL_GetNumCameraDrivers(void);
+  # SDL_Camera *SDL_OpenCameraDevice(SDL_CameraDeviceID instance_id, const SDL_CameraSpec *spec);
+  # int SDL_ReleaseCameraFrame(SDL_Camera *camera, SDL_Surface *frame);
+
+  # ------------------------------------------------------------------------- #
   # <SDL3/SDL_clipboard.h>                                                    #
   # ------------------------------------------------------------------------- #
 
@@ -251,6 +271,20 @@ dlgencalls "sdl3", lib_paths:
 
     # int SDL_SetClipboardText(const char *text)
     # int SDL_SetPrimarySelectionText(const char *text)
+
+  # ------------------------------------------------------------------------- #
+  # <SDL3/SDL_dialog.h>                                                       #
+  # ------------------------------------------------------------------------- #
+
+  # void SDL_ShowOpenFileDialog(SDL_DialogFileCallback callback,
+  #   void *userdata, SDL_Window *window, const SDL_DialogFileFilter *filters,
+  #   const char *default_location, SDL_bool allow_many);
+  # void SDL_ShowOpenFolderDialog(SDL_DialogFileCallback callback,
+  #   void *userdata, SDL_Window *window, const char *default_location,
+  #   SDL_bool allow_many);
+  # void SDL_ShowSaveFileDialog(SDL_DialogFileCallback callback,
+  #   void *userdata, SDL_Window *window, const SDL_DialogFileFilter *filters,
+  #   const char *default_location);
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_error.h>                                                        #
@@ -367,9 +401,13 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_CloseJoystick(joystick: Joystick)
 
+    # int SDL_GetJoystickBall(SDL_Joystick *joystick, int ball, int *dx, int *dy);
+
     proc SDL_GetJoystickGUID(joystick: Joystick): JoystickGUID
 
     proc SDL_GetJoystickName(joystick: Joystick): cstring
+
+    # int SDL_GetNumJoystickBalls(SDL_Joystick *joystick);
 
     proc SDL_GetJoystickPath(joystick: Joystick): cstring
 
@@ -390,8 +428,6 @@ dlgencalls "sdl3", lib_paths:
     proc SDL_GetNumJoystickButtons(joystick: Joystick): cint
 
     proc SDL_GetNumJoystickHats(joystick: Joystick): cint
-
-    proc SDL_JoystickHasLED(joystick: Joystick): SdlBool
 
     proc SDL_OpenJoystick(instance_id: JoystickID): Joystick
 
@@ -462,7 +498,7 @@ dlgencalls "sdl3", lib_paths:
   # void SDL_LogResetPriorities(void)
   # void SDL_LogSetAllPriority(SDL_LogPriority priority)
 
-  proc SDL_LogSetOutputFunction(callback: LogOutputFunction, userdata: pointer)
+  proc SDL_SetLogOutputFunction(callback: LogOutputFunction, userdata: pointer)
 
   proc SDL_LogSetPriority(category: LogCategory, priority: LogPriority)
 
@@ -543,6 +579,14 @@ dlgencalls "sdl3", lib_paths:
     # void SDL_WarpMouseInWindow(SDL_Window *window, float x, float y)
 
   # ------------------------------------------------------------------------- #
+  # <SDL2/SDL_iostream.h>                                                     #
+  # ------------------------------------------------------------------------- #
+
+  # XXX: TODO.
+
+  proc SDL_IOFromFile(file: cstring, mode: cstring): IOStream
+
+  # ------------------------------------------------------------------------- #
   # <SDL3/SDL_pen.h>                                                          #
   # ------------------------------------------------------------------------- #
 
@@ -561,12 +605,12 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_CreatePalette(ncolors: cint): ptr Palette
 
-  # SDL_PixelFormat *SDL_CreatePixelFormat(Uint32 pixel_format)
+  # SDL_PixelFormat *SDL_CreatePixelFormat(SDL_PixelFormatEnum pixel_format)
 
   proc SDL_DestroyPalette(palette: ptr Palette)
 
   # void SDL_DestroyPixelFormat(SDL_PixelFormat *format)
-  # SDL_bool SDL_GetMasksForPixelFormatEnum(Uint32 format, int *bpp,
+  # SDL_bool SDL_GetMasksForPixelFormatEnum(SDL_PixelFormatEnum format, int *bpp,
   #     Uint32 *Rmask, Uint32 *Gmask, Uint32 *Bmask, Uint32 *Amask)
 
   proc SDL_GetPixelFormatEnumForMasks(
@@ -575,9 +619,9 @@ dlgencalls "sdl3", lib_paths:
     gmask   : uint32,
     bmask   : uint32,
     amask   : uint32
-  ): uint32
+  ): PixelFormatEnum
 
-  # const char* SDL_GetPixelFormatName(Uint32 format)
+  # const char* SDL_GetPixelFormatName(SDL_PixelFormatEnum format)
   # void SDL_GetRGB(Uint32 pixel, const SDL_PixelFormat *format,
   #     Uint8 *r, Uint8 *g, Uint8 *b)
   # void SDL_GetRGBA(Uint32 pixel, const SDL_PixelFormat *format,
@@ -686,6 +730,9 @@ dlgencalls "sdl3", lib_paths:
   # <SDL3/SDL_render.h>                                                       #
   # ------------------------------------------------------------------------- #
 
+  # int SDL_AddVulkanRenderSemaphores(SDL_Renderer *renderer,
+  #     Uint32 wait_stage_mask, Sint64 wait_semaphore, Sint64 signal_semaphore);
+
   # int SDL_ConvertEventToRenderCoordinates(SDL_Renderer *renderer,
   #     proc SDL_Event *event)
 
@@ -737,11 +784,12 @@ dlgencalls "sdl3", lib_paths:
   #     int *w, int *h)
   # int SDL_GetNumRenderDrivers(void)
   # int SDL_GetRenderClipRect(SDL_Renderer *renderer, SDL_Rect *rect)
+  # int SDL_GetRenderColorScale(SDL_Renderer *renderer, float *scale);
   # int SDL_GetRenderDrawBlendMode(SDL_Renderer *renderer,
   #     proc SDL_BlendMode *blendMode)
   # int SDL_GetRenderDrawColor(SDL_Renderer *renderer,
   #     Uint8 *r, Uint8 *g, Uint8 *b, Uint8 *a)
-  # extern DECLSPEC int SDLCALL SDL_GetRenderDrawColorFloat(SDL_Renderer *renderer, float *r, float *g, float *b, float *a);
+  # int SDL_GetRenderDrawColorFloat(SDL_Renderer *renderer, float *r, float *g, float *b, float *a);
   # const char *SDL_GetRenderDriver(int index)
   # SDL_Renderer * SDL_GetRendererFromTexture(SDL_Texture *texture);
   # int SDL_GetRenderLogicalPresentation(SDL_Renderer *renderer,
@@ -766,8 +814,8 @@ dlgencalls "sdl3", lib_paths:
   #     proc SDL_BlendMode *blendMode)
   # int SDL_GetTextureColorMod(SDL_Texture *texture,
   #     Uint8 *r, Uint8 *g, Uint8 *b)
-  # extern DECLSPEC int SDLCALL SDL_GetTextureAlphaModFloat(SDL_Texture *texture, float *alpha);
-  # extern DECLSPEC int SDLCALL SDL_GetTextureColorModFloat(SDL_Texture *texture, float *r, float *g, float *b);
+  # int SDL_GetTextureAlphaModFloat(SDL_Texture *texture, float *alpha);
+  # int SDL_GetTextureColorModFloat(SDL_Texture *texture, float *r, float *g, float *b);
   # SDL_PropertiesID SDL_GetTextureProperties(SDL_Texture *texture)
   # int SDL_GetTextureScaleMode(SDL_Texture *texture,
   #     proc SDL_ScaleMode *scaleMode)
@@ -805,10 +853,21 @@ dlgencalls "sdl3", lib_paths:
     num_indices   : cint
   ): cint
 
-  # int SDL_RenderGeometryRaw(SDL_Renderer *renderer, SDL_Texture *texture,
-  #     const float *xy, int xy_stride, const SDL_FColor *color,
-  #     int color_stride, const float *uv, int uv_stride, int num_vertices,
-  #     const void *indices, int num_indices, int size_indices)
+  # int SDL_RenderGeometryRaw(SDL_Renderer *renderer,
+  #                            SDL_Texture *texture,
+  #                            const float *xy, int xy_stride,
+  #                            const SDL_Color *color, int color_stride,
+  #                            const float *uv, int uv_stride,
+  #                            int num_vertices,
+  #                            const void *indices, int num_indices, int size_indices)
+
+  # int SDL_RenderGeometryRawFloat(SDL_Renderer *renderer,
+  #                                SDL_Texture *texture,
+  #                                const float *xy, int xy_stride,
+  #                                const SDL_FColor *color, int color_stride,
+  #                                const float *uv, int uv_stride,
+  #                                int num_vertices,
+  #                                const void *indices, int num_indices, int size_indices);
 
   proc SDL_RenderLine(
     renderer  : Renderer,
@@ -850,7 +909,11 @@ dlgencalls "sdl3", lib_paths:
     flip      : FlipMode
   ): cint
 
+  # SDL_bool SDL_RenderViewportSet(SDL_Renderer *renderer);
+
   proc SDL_SetRenderClipRect(renderer: Renderer, rect: ptr Rect): cint
+
+  # int SDL_SetRenderColorScale(SDL_Renderer *renderer, float scale);
 
   proc SDL_SetRenderDrawBlendMode(
     renderer    : Renderer,
@@ -859,7 +922,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_SetRenderDrawColor(renderer: Renderer, r, g, b, a: byte): cint
 
-  # extern DECLSPEC int SDLCALL SDL_SetRenderDrawColorFloat(SDL_Renderer *renderer, float r, float g, float b, float a);
+  # int SDL_SetRenderDrawColorFloat(SDL_Renderer *renderer, float r, float g, float b, float a);
 
   # int SDL_SetRenderLogicalPresentation(SDL_Renderer *renderer,
   #     int w, int h, SDL_RendererLogicalPresentation mode,
@@ -876,7 +939,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_SetTextureAlphaMod(texture: Texture, alpha: byte): cint
 
-  # extern DECLSPEC int SDLCALL SDL_SetTextureAlphaModFloat(SDL_Texture *texture, float alpha);
+  # int SDL_SetTextureAlphaModFloat(SDL_Texture *texture, float alpha);
 
   proc SDL_SetTextureBlendMode(
     texture     : Texture,
@@ -885,7 +948,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_SetTextureColorMod(texture: Texture, r, g, b: byte): cint
 
-  # extern DECLSPEC int SDLCALL SDL_SetTextureColorModFloat(SDL_Texture *texture, float r, float g, float b);
+  # int SDL_SetTextureColorModFloat(SDL_Texture *texture, float r, float g, float b);
 
   proc SDL_SetTextureScaleMode(texture: Texture,
                                scale_mode: ScaleMode): cint
@@ -902,14 +965,6 @@ dlgencalls "sdl3", lib_paths:
   #                          const Uint8 *Yplane, int Ypitch,
   #                          const Uint8 *Uplane, int Upitch,
   #                          const Uint8 *Vplane, int Vpitch)
-
-  # ------------------------------------------------------------------------- #
-  # <SDL2/SDL_rwops.h>                                                        #
-  # ------------------------------------------------------------------------- #
-
-  # XXX: TODO.
-
-  proc SDL_RWFromFile(file: cstring, mode: cstring): RWops
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_sensor.h>                                                       #
@@ -941,20 +996,20 @@ dlgencalls "sdl3", lib_paths:
   #     proc SDL_Surface *dst, const SDL_Rect *dstrect)
   # int SDL_BlitSurfaceUncheckedScaled (SDL_Surface *src,
   #     const SDL_Rect *srcrect, SDL_Surface *dst, const SDL_Rect *dstrect, SDL_ScaleMode scaleMode)
-  # int SDL_ConvertPixels(int width, int height, Uint32 src_format,
-  #     const void *src, int src_pitch, Uint32 dst_format, void *dst,
+  # int SDL_ConvertPixels(int width, int height, SDL_PixelFormatEnum src_format,
+  #     const void *src, int src_pitch, SDL_PixelFormatEnum dst_format, void *dst,
   #     int dst_pitch)
-  # int SDL_ConvertPixelsAndColorspace(int width, int height, Uint32 src_format, SDL_Colorspace src_colorspace, const void *src, int src_pitch, Uint32 dst_format, SDL_Colorspace dst_colorspace, void *dst, int dst_pitch);
+  # int SDL_ConvertPixelsAndColorspace(int width, int height, SDL_PixelFormatEnum src_format, SDL_Colorspace src_colorspace, const void *src, int src_pitch, SDL_PixelFormatEnum dst_format, SDL_Colorspace dst_colorspace, void *dst, int dst_pitch);
   # SDL_Surface *SDL_ConvertSurface(SDL_Surface *surface,
   #     const SDL_PixelFormat *format)
   # SDL_Surface *SDL_ConvertSurfaceFormat(SDL_Surface *surface,
-  #     Uint32 pixel_format)
-  # SDL_Surface *SDL_ConvertSurfaceFormatAndColorspace(SDL_Surface *surface, Uint32 pixel_format, SDL_Colorspace colorspace);
-  # SDL_Surface *SDL_CreateSurface (int width, int height, Uint32 format)
+  #     SDL_PixelFormatEnum pixel_format)
+  # SDL_Surface *SDL_ConvertSurfaceFormatAndColorspace(SDL_Surface *surface, SDL_PixelFormatEnum pixel_format, SDL_Colorspace colorspace);
+  # SDL_Surface *SDL_CreateSurface (int width, int height, SDL_PixelFormatEnum format)
 
   # SDL_CreateRGBSurfaceFrom in SDL2.
   proc SDL_CreateSurfaceFrom(pixels: pointer, width, height: cint, pitch: cint,
-                             format: uint32): SurfacePtr
+                             format: PixelFormatEnum): SurfacePtr
 
   # SDL_FreeSurface (SDL2) → SDL_DestroySurface (SDL3).
   proc SDL_DestroySurface(surface: SurfacePtr)
@@ -964,7 +1019,7 @@ dlgencalls "sdl3", lib_paths:
   #     Uint32 color)
   # int SDL_FillSurfaceRects (SDL_Surface *dst, const SDL_Rect *rects,
   #     int count, Uint32 color)
-  # extern DECLSPEC int SDLCALL SDL_FlipSurface(SDL_Surface *surface, SDL_FlipMode flip);
+  # int SDL_FlipSurface(SDL_Surface *surface, SDL_FlipMode flip);
   # int SDL_GetSurfaceAlphaMod(SDL_Surface *surface, Uint8 *alpha)
   # int SDL_GetSurfaceBlendMode(SDL_Surface *surface,
   #     proc SDL_BlendMode *blendMode)
@@ -977,18 +1032,18 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_LoadBMP(file: cstring): SurfacePtr
 
-  proc SDL_LoadBMP_RW(src: RWops, freesrc: cint): SurfacePtr
+  proc SDL_LoadBMP_IO(src: IOStream, closeio: cint): SurfacePtr
 
   # int SDL_LockSurface(SDL_Surface *surface)
-  # int SDL_PremultiplyAlpha(int width, int height, Uint32 src_format,
-  #     const void *src, int src_pitch, Uint32 dst_format, void *dst,
+  # int SDL_PremultiplyAlpha(int width, int height, SDL_PixelFormatEnum src_format,
+  #     const void *src, int src_pitch, SDL_PixelFormatEnum dst_format, void *dst,
   #     int dst_pitch)
 
   # int SDL_ReadSurfacePixel(SDL_Surface *surface, int x, int y, Uint8 *r, Uint8 *g, Uint8 *b, Uint8 *a);
 
   proc SDL_SaveBMP(surface: SurfacePtr, file: cstring): cint
 
-  proc SDL_SaveBMP_RW(surface: SurfacePtr, dst: RWops, freedst: cint): cint
+  proc SDL_SaveBMP_IO(surface: SurfacePtr, dst: IOStream, closeio: cint): cint
 
   # int SDL_SetSurfaceAlphaMod(SDL_Surface *surface, Uint8 alpha)
   # int SDL_SetSurfaceBlendMode(SDL_Surface *surface,
@@ -1204,7 +1259,6 @@ dlgencalls "sdl3", lib_paths:
   # int SDL_GetWindowSizeInPixels(SDL_Window *window, int *w, int *h)
   # SDL_Surface *SDL_GetWindowSurface(SDL_Window *window)
   # const char *SDL_GetWindowTitle(SDL_Window *window)
-  # SDL_bool SDL_HasWindowSurface(SDL_Window *window)
 
   proc SDL_HideWindow(window: Window): cint
 
@@ -1255,6 +1309,8 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_SetWindowResizable(window: Window, ontop: SdlBool): cint
 
+  # int SDL_SetWindowShape(SDL_Window *window, SDL_Surface *shape);
+
   proc SDL_SetWindowSize(window: Window, x, y: cint): cint
 
   proc SDL_SetWindowTitle(window: Window, title: cstring): cint
@@ -1268,6 +1324,8 @@ dlgencalls "sdl3", lib_paths:
 
   # int SDL_UpdateWindowSurfaceRects(SDL_Window *window,
   #     const SDL_Rect *rects, int numrects)
+
+  # SDL_bool SDL_WindowHasSurface(SDL_Window *window)
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_vulkan.h>                                                       #

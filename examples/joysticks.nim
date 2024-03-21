@@ -56,7 +56,7 @@ proc main() =
     echo "  details  : ", GetNumJoystickAxes joy, " axes, ",
          GetNumJoystickButtons joy, " buttons, ",
          GetNumJoystickHats joy, " hats"
-    echo "  features : LED: ", JoystickHasLED joy,
+    echo "  features : ",
          " rumble: ", JoystickHasRumble joy,
          " rumble triggers: ", JoystickHasRumbleTriggers joy
 

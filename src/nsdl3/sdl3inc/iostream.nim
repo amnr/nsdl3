@@ -6,6 +6,6 @@
 {.push raises: [].}
 
 type
-  RWops* = ptr object
+  IOStream* = ptr object
 
 # vim: set sts=2 et sw=2:

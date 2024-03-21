@@ -6,9 +6,10 @@
 {.push raises: [].}
 
 from audio import AudioDeviceID
+from camera import CameraDeviceID
 from joystick import Hat, JoystickID, JoystickPowerLevel
 from keyboard import Keysym
-from mouse import MouseID
+from mouse import MouseID, MouseWheelDirection
 from pen import PenID, PEN_NUM_AXES
 from sensor import SensorID
 from touch import FingerID, TouchID
@@ -43,8 +44,7 @@ type
     EVENT_DISPLAY_REMOVED
     EVENT_DISPLAY_MOVED
     EVENT_DISPLAY_CONTENT_SCALE_CHANGED
-    # EVENT_DISPLAY_FIRST = EVENT_DISPLAY_ORIENTATION
-    # EVENT_DISPLAY_LAST  = EVENT_DISPLAY_CONTENT_SCALE_CHANGED
+    EVENT_DISPLAY_HDR_STATE_CHANGED
 
     # Window events.
     # EVENT_SYSWM = 0x201
@@ -73,8 +73,6 @@ type
     EVENT_WINDOW_DESTROYED
     EVENT_WINDOW_PEN_ENTER
     EVENT_WINDOW_PEN_LEAVE
-    # EVENT_WINDOW_FIRST  = EVENT_WINDOW_SHOWN
-    # EVENT_WINDOW_LAST   = EVENT_WINDOW_PEN_LEAVE
 
     # Keyboard events.
     EVENT_KEY_DOWN              = 0x300
@@ -91,7 +89,8 @@ type
 
     # Joystick events.
     EVENT_JOYSTICK_AXIS_MOTION  = 0x600
-    EVENT_JOYSTICK_HAT_MOTION   = 0x602
+    EVENT_JOYSTICK_BALL_MOTION
+    EVENT_JOYSTICK_HAT_MOTION
     EVENT_JOYSTICK_BUTTON_DOWN
     EVENT_JOYSTICK_BUTTON_UP
     EVENT_JOYSTICK_ADDED
@@ -143,6 +142,12 @@ type
     EVENT_PEN_BUTTON_DOWN
     EVENT_PEN_BUTTON_UP
 
+    # Camera hotplug events.
+    EVENT_CAMERA_DEVICE_ADDED   = 0x1400
+    EVENT_CAMERA_DEVICE_REMOVED
+    EVENT_CAMERA_DEVICE_APPROVED
+    EVENT_CAMERA_DEVICE_DENIED
+
     # Render events.
     EVENT_RENDER_TARGETS_RESET  = 0x2000
     EVENT_RENDER_DEVICE_RESET
@@ -164,15 +169,24 @@ type
 
     EVENT_LAST                  = 0xffff
 
+const
+  EVENT_DISPLAY_FIRST*  = EVENT_DISPLAY_ORIENTATION
+  EVENT_DISPLAY_LAST*   = EVENT_DISPLAY_HDR_STATE_CHANGED
+
+  EVENT_WINDOW_FIRST*   = EVENT_WINDOW_SHOWN
+  EVENT_WINDOW_LAST*    = EVENT_WINDOW_PEN_LEAVE
+
 type
   CommonEvent* {.final, pure.} = object
     ##  Common event.
     typ*          : EventType
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
 
   DisplayEvent* {.final, pure.} = object
     ##  Display state change event.
     typ*          : EventType   ##  `EVENT_DISPLAYEVENT_*`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     display_id*   : DisplayID   ##  Associated display.
     data1         : int32       ##  Event dependent data.
@@ -180,6 +194,7 @@ type
   WindowEvent* {.final, pure.} = object
     ##  Window state change event.
     typ*          : EventType   ##  `EVENT_WINDOW_*`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Associated window.
     data1*        : int32       ##  Event dependent data.
@@ -188,6 +203,7 @@ type
   KeyboardEvent* {.final, pure.} = object
     ##  Keyboard button event.
     typ*          : EventType   ##  `EVENT_KEY_DOWN` or `EVENT_KEY_UP`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with keyboard focus (if any).
     state*        : byte        ##  `PRESSED` or `RELEASED`.
@@ -206,6 +222,7 @@ type
     ##
     ##  .. note:: This event should be cleaned up with `cleanup_event()` after processing.
     typ*          : EventType   ##  `EVENT_TEXT_EDITING`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with keyboard focus (if any).
     text*         : cstring     ##  The editing text.
@@ -229,6 +246,7 @@ type
   MouseMotionEvent* {.final, pure.} = object
     ##  Mouse motion event.
     typ*          : EventType   ##  `EVENT_MOUSE_MOTION`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with mouse focus (if any).
     which*        : MouseID     ##  Mouse instance ID, `TOUCH_MOUSEID` or `PEN_MOUSEID`.
@@ -238,9 +256,23 @@ type
     xrel*         : cfloat      ##  Relative motion (X direction).
     yrel*         : cfloat      ##  Relative motion (Y direction).
 
+  JoyBallEvent* {.final, pure.} = object
+    ##  Joystick trackball motion event.
+    typ*          : EventType   ##  `EVENT_JOYBALLMOTION`.
+    reserved      : uint32
+    timestamp*    : uint64      ##  Timestamp (ns).
+    which*        : JoystickID  ##  Joystick ID.
+    ball*         : byte        ##  Joystick trackball index.
+    padding1      : byte
+    padding2      : byte
+    padding3      : byte
+    xrel*         : int16       ##  Relative motion (X direction).
+    yrel*         : int16       ##  Relative motion (Y direction).
+
   MouseButtonEvent* {.final, pure.} = object
     ##  Mouse button event.
     typ*          : EventType   ##  `EVENT_MOUSE_BUTTON_DOWN` or `EVENT_MOUSE_BUTTON_UP`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with mouse focus (if any).
     which*        : MouseID     ##  Mouse instance ID, `SDL_TOUCH_MOUSEID` or `PEN_MOUSEID`.
@@ -254,6 +286,7 @@ type
   MouseWheelEvent* {.final, pure.} = object
     ##  Mouse wheel event.
     typ*          : EventType   ##  `EVENT_MOUSE_WHEEL`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with mouse focus (if any).
     which*        : MouseID     ##  Mouse instance ID, `SDL_TOUCH_MOUSEID` or `PEN_MOUSEID`.
@@ -261,13 +294,14 @@ type
                                 ##  right. Negative to the left.
     y*            : cfloat      ##  Vertical scroll amount. Positive to the
                                 ##  user, negative toward the user.
-    direction*    : uint32      ##  Direction (`MOUSEWHEEL_*`).
+    direction*    : MouseWheelDirection   ##  Direction (`MOUSEWHEEL_*`).
     mouse_x*      : cfloat      ##  X position.
     mouse_y*      : cfloat      ##  Y position.
 
   JoyAxisEvent* {.final, pure.} = object
     ##  Joystick axis motion event.
     typ*          : EventType   ##  `EVENT_JOYSTICK_AXIS_MOTION`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
     axis*         : byte        ##  Joystick axis index.
@@ -280,6 +314,7 @@ type
   JoyHatEvent* {.final, pure.} = object
     ##  Joystick hat position change event.
     typ*          : EventType   ##  `EVENT_JOYSTICK_HAT_MOTION`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
     hat*          : Hat         ##  Joystick hat index.
@@ -290,6 +325,7 @@ type
   JoyButtonEvent* {.final, pure.} = object
     ##  Joystick button event.
     typ*          : EventType   ##  `EVENT_JOYSTICK_BUTTON_DOWN` or `EVENT_JOYSTICK_BUTTON_UP`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
     button*       : byte        ##  Joystick button index.
@@ -300,12 +336,14 @@ type
   JoyDeviceEvent* {.final, pure.} = object
     ##  Joystick device event.
     typ*          : EventType   ##  `EVENT_JOYSTICK_ADDED`, `EVENT_JOYSTICK_REMOVED` or `EVENT_JOYSTICK_UPDATE_COMPLETE`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
 
   JoyBatteryEvent* {.final, pure.} = object
     ##  Joystick battery event.
     typ*          : EventType   ##  `EVENT_JOYSTICK_BATTERY_UPDATED`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
     level*        : JoystickPowerLevel    ##  Battery level.
@@ -313,6 +351,7 @@ type
   GamepadAxisEvent* {.final, pure.} = object
     ##  Gamepad axis motion event.
     typ*          : EventType   ##  `EVENT_GAMEPAD_AXIS_MOTION`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
     axis*         : byte        ##  Controller axis (`GameControllerAxis`).
@@ -325,6 +364,7 @@ type
   GamepadButtonEvent* {.final, pure.} = object
     ##  Gamepad button event.
     typ*          : EventType   ##  `EVENT_GAMEPAD_BUTTON_DOWN` or `EVENT_GAMEPAD_BUTTON_UP`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
     button*       : byte        ##  Joystick button (`GameControllerButton`).
@@ -339,6 +379,7 @@ type
                                 ##  `EVENT_GAMEPAD_REMAPPED`,
                                 ##  `EVENT_GAMEPAD_UPDATE_COMPLETE`
                                 ##  or `EVENT_GAMEPAD_STEAM_HANDLE_UPDATED`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick device index for the `ADDED` event
                                 ##  or instance id for the `REMOVED`
@@ -349,6 +390,7 @@ type
     typ*          : EventType   ##  `EVENT_GAMEPAD_TOUCHPAD_DOWN`,
                                 ##  `EVENT_GAMEPAD_TOUCHPAD_MOTION`
                                 ##  or `EVENT_GAMEPAD_TOUCHPAD_UP`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
     touchpad*     : int32       ##  Touchpad index.
@@ -360,6 +402,7 @@ type
   GamepadSensorEvent* {.final, pure.} = object
     ##  Gamepad sensor event.
     typ*          : EventType   ##  `EVENT_GAMEPAD_SENSOR_UPDATE`.
+    reserved      : uint32
     timestamp*    : uint64      ##  In ms, populated using GetTicks().
     which*        : JoystickID  ##  Joystick ID.
     sensor*       : int32       ##  Sensor type (`SensorType`).
@@ -369,8 +412,9 @@ type
   AudioDeviceEvent* {.final, pure.} = object
     ##  Audio device event.
     typ*          : EventType       ##  `EVENT_AUDIO_DEVICE_ADDED`, `EVENT_AUDIO_DEVICE_REMOVED` or `EVENT_AUDIO_DEVICE_FORMAT_CHANGED`.
+    reserved      : uint32
     timestamp*    : uint64          ##  Timestamp (ns).
-    which*        : AudioDeviceID   ##  Audio device index for the `ADDED` event
+    which*        : AudioDeviceID   ##  Audio device index for the `ADDED` event.
                                     ##  (valid until next `get_num_audio_devices()
                                     ##  call) or `AudioDeviceID` for the `REMOVED` event.
     iscapture*    : byte            ##  Output device (0) or capture device (non-zero).
@@ -378,9 +422,20 @@ type
     padding2      : byte
     padding3      : byte
 
+  CameraDeviceEvent* {.final, pure.} = object
+    ##  Camera device event.
+    typ*          : EventType       ##  `EVENT_CAMERA_DEVICE_ADDED`, `EVENT_CAMERA_DEVICE_REMOVED`, `EVENT_CAMERA_DEVICE_APPROVED` or `EVENT_CAMERA_DEVICE_DENIED`.
+    reserved      : uint32
+    timestamp*    : uint64          ##  Timestamp (ns).
+    which*        : CameraDeviceID  ##  Camera device index for the `ADDED`, `REMOVED` or `CHANGING` event.
+    padding1      : byte
+    padding2      : byte
+    padding3      : byte
+
   TouchFingerEvent* {.final, pure.} = object
     ##  Touch finger event.
     typ*          : EventType   ##  `EVENT_FINGER_MOTION`, `EVENT_FINGER_DOWN` or `EVENT_FINGER_UP`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     touch_id*     : TouchID     ##  Touch ID.
     finger_id*    : FingerID
@@ -398,7 +453,8 @@ type
 type
   PenTipEvent* {.final, pure.} = object
     ##  Pressure-sensitive pen touched or stopped touching surface.
-    typ*          : EventTYpe   ##  `EVENT_PEN_DOWN` or ``SDL_EVENT_PEN_UP`.
+    typ*          : EventType   ##  `EVENT_PEN_DOWN` or ``SDL_EVENT_PEN_UP`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
@@ -413,7 +469,8 @@ type
 
   PenMotionEvent* {.final, pure.} = object
     ##  Pressure-sensitive pen motion / pressure / angle event structure.
-    typ*          : EventTYpe   ##  `EVENT_PEN_MOTION`.
+    typ*          : EventType   ##  `EVENT_PEN_MOTION`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
@@ -428,7 +485,8 @@ type
 
   PenButtonEvent* {.final, pure.} = object
     ##  Pressure-sensitive pen button event structure.
-    typ*          : EventTYpe   ##  `EVENT_PEN_BUTTON_DOWN` or `EVENT_PEN_BUTTON_UP`.
+    typ*          : EventType   ##  `EVENT_PEN_BUTTON_DOWN` or `EVENT_PEN_BUTTON_UP`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
@@ -447,6 +505,7 @@ type
     ##  .. note:: This event should be cleaned up with `cleanup_event()` after processing.
     typ*          : EventType   ##  `EVENT_DROP_BEGIN`, `EVENT_DROP_FILE`,
                                 ##  `EVENT_DROP_TEXT` or `EVENT_DROP_COMPLETE`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window ID file was dropped on (if any).
     x*            : cfloat      ##  X position.
@@ -457,11 +516,13 @@ type
   ClipboardEvent* {.final, pure.} = object
     ##  Clipboard contents have changed.
     typ*          : EventType   ##  `EVENT_CLIPBOARD_UPDATE`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
 
   SensorEvent* {.final, pure.} = object
     ##  Sensor event.
     typ*          : EventType   ##  `EVENT_SENSOR_UPDATE`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : SensorID    ##  Sensor ID.
     data*         : array[6, cfloat]  ##  Sensor values (up to 6).
@@ -472,11 +533,13 @@ type
   QuitEvent* {.final, pure.} = object
     ##  The "quit requested" event.
     typ*          : EventType   ##  `EVENT_QUIT`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
 
   UserEvent* {.final, pure.} = object
     ##  A user-defined event type.
     typ*          : EventType   ##  `EVENT_USER` through `EVENT_USER8`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Associated window (if any).
     code*         : int32       ##  User defined code.
@@ -497,6 +560,7 @@ type
     button*       : MouseButtonEvent          ##  Mouse button event.
     wheel*        : MouseWheelEvent           ##  Mouse wheel event.
     jaxis*        : JoyAxisEvent              ##  Joystick axis event.
+    jball*        : JoyBallEvent              ##  Joystick ball event.
     jhat*         : JoyHatEvent               ##  Joystick hat event.
     jbutton*      : JoyButtonEvent            ##  Joystick button event.
     jdevice*      : JoyDeviceEvent            ##  Joystick device change event.
@@ -507,6 +571,7 @@ type
     gtouchpad*    : GamepadTouchpadEvent      ##  Gamepad touchpad event.
     gsensor*      : GamepadSensorEvent        ##  Gamepad sensor event.
     adevice*      : AudioDeviceEvent          ##  Audio device event.
+    cdevice*      : CameraDeviceEvent         ##  Camera device event.
     sensor*       : SensorEvent               ##  Sensor event.
     quit*         : QuitEvent                 ##  Quit request event.
     user*         : UserEvent                 ##  Custom event.

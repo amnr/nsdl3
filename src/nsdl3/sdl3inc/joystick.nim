@@ -76,13 +76,13 @@ type
 const
   VIRTUAL_JOYSTICK_DESC_VERSION*  = 1
 
-const
-  # XXX: make distinct type.
-  PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN*       = cstring"SDL.joystick.cap.mono_led"
-  PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN*        = cstring"SDL.joystick.cap.rgb_led"
-  PROP_JOYSTICK_CAP_PLAYER_LED_BOOLEAN*     = cstring"SDL.joystick.cap.player_led"
-  PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN*         = cstring"SDL.joystick.cap.rumble"
-  PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN* = cstring"SDL.joystick.cap.trigger_rumble"
+type
+  PropJoystickCap* = enum
+    PROP_JOYSTICK_CAP_MONO_LED_BOOLEAN        = cstring"SDL.joystick.cap.mono_led"
+    PROP_JOYSTICK_CAP_RGB_LED_BOOLEAN         = cstring"SDL.joystick.cap.rgb_led"
+    PROP_JOYSTICK_CAP_PLAYER_LED_BOOLEAN      = cstring"SDL.joystick.cap.player_led"
+    PROP_JOYSTICK_CAP_RUMBLE_BOOLEAN          = cstring"SDL.joystick.cap.rumble"
+    PROP_JOYSTICK_CAP_TRIGGER_RUMBLE_BOOLEAN  = cstring"SDL.joystick.cap.trigger_rumble"
 
 type
   Hat* = distinct byte

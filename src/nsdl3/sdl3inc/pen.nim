@@ -69,6 +69,7 @@ type
     ##  Pen types.
     ##
     ##  Some pens identify as a particular type of drawing device (e.g., an airbrush or a pencil).
+    PEN_TYPE_UNKNOWN = 0
     PEN_TYPE_ERASER = 1     ##  Eraser.
     PEN_TYPE_PEN            ##  Generic pen; this is the default.
     PEN_TYPE_PENCIL         ##  Pencil.

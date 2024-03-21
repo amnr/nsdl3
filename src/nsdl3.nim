@@ -608,10 +608,6 @@ when use_joystick:
     ##  `SDL_GetJoystickGUID`
     SDL_GetJoystickGUID joystick
 
-  proc JoystickHasLED*(joystick: Joystick): bool {.inline.} =
-    ##  `SDL_JoystickHasLED`
-    SDL_JoystickHasLED joystick
-
   proc JoystickHasRumble*(joystick: Joystick): bool {.deprecated: "use GetJoystickCaps instead".} =
     assert false    # XXX
 
@@ -788,13 +784,13 @@ proc LogMessage*(category: LogCategory, priority: LogPriority,
 # void SDL_LogResetPriorities(void)
 # void SDL_LogSetAllPriority(SDL_LogPriority priority)
 
-proc LogSetOutputFunction*(callback: LogOutputFunction,
+proc SetLogOutputFunction*(callback: LogOutputFunction,
                            userdata: pointer = nil) {.inline.} =
   ##  ```c
-  ##  void SDL_LogSetOutputFunction(SDL_LogOutputFunction callback,
+  ##  void SDL_SetLogOutputFunction(SDL_LogOutputFunction callback,
   ##                                void *userdata)
   ##  ```
-  SDL_LogSetOutputFunction callback, userdata
+  SDL_SetLogOutputFunction callback, userdata
 
 proc LogSetPriority*(category: LogCategory, priority: LogPriority) {.inline.} =
   ##  ```c
@@ -1013,7 +1009,7 @@ when use_mouse:
 
 proc GetPixelFormatEnumForMasks*(bpp: int, rmask: uint32, gmask: uint32,
                                  bmask: uint32,
-                                 amask: uint32): uint32 {.inline.} =
+                                 amask: uint32): PixelFormatEnum {.inline.} =
   ##  Convert bits/pixel value and RGBA masks to pixel format.
   ##
   ##  Return `PIXELFORMAT_UNKNOWN` if the conversion failed.
@@ -1638,14 +1634,13 @@ proc UpdateTexture*(texture: Texture, pixels: pointer, pitch: int): bool =
 # SDL_Surface *SDL_CreateSurface (int width, int height, Uint32 format)
 
 proc CreateSurfaceFrom*(pixels: pointer, width, height: int, pitch: int,
-                        format: uint32): SurfacePtr =
+                        format: PixelFormatEnum): SurfacePtr =
   ##  ```c
   ##  SDL_Surface *SDL_CreateSurfaceFrom(void *pixels, int width, int height,
   ##                                    int pitch, Uint32 format)
   ##  ```
   ensure_not_nil "SDL_CreateSurfaceFrom":
-    SDL_CreateSurfaceFrom(pixels, width.cint, height.cint,
-                                    pitch.cint, format)
+    SDL_CreateSurfaceFrom pixels, width.cint, height.cint, pitch.cint, format
 
 proc DestroySurface*(surface: SurfacePtr) {.inline.} =
   ##  ```c

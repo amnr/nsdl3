@@ -5,6 +5,7 @@
 
 {.push raises: [].}
 
+from pixels import PixelFormatEnum
 from rect import Point
 
 type
@@ -19,9 +20,9 @@ type
 
 func `==`*(a, b: WindowID): bool {.borrow.}
 
-const
-  # XXX: make distinct enum.
-  PROP_GLOBAL_VIDEO_WAYLAND_WL_DISPLAY_POINTER  = cstring"video.wayland.wl_display"
+type
+  PropGlobalVideo* = enum
+    PROP_GLOBAL_VIDEO_WAYLAND_WL_DISPLAY_POINTER  = cstring"video.wayland.wl_display"
 
 type
   SystemTheme* {.size: cint.sizeof.} = enum   # XXX size
@@ -33,7 +34,7 @@ type
   DisplayMode* {.bycopy, final, pure.} = object
     ##  Display mode.
     display_id*     : DisplayID   ##  Display mode.
-    format*         : uint32      ##  Pixel format.
+    format*         : PixelFormatEnum   ##  Pixel format.
     w*              : cint        ##  Screen width.
     h*              : cint        ##  Screen height.
     pixel_density*  : cfloat      ##  Size to pixels scale.
@@ -188,6 +189,9 @@ type
     GL_CONTEXT_RESET_NO_NOTIFICATION = 0x0000
     GL_CONTEXT_RESET_LOSE_CONTEXT    = 0x0001
 
+#define SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN            "SDL.display.HDR_enabled"
+#define SDL_PROP_DISPLAY_SDR_WHITE_LEVEL_FLOAT          "SDL.display.SDR_white_level"
+
 type
   WindowBooleanProperty* = enum
     PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN                = cstring"always-on-top"
@@ -225,6 +229,7 @@ type
 
 type
   WindowPointerProperty* = enum
+    PROP_WINDOW_SHAPE_POINTER                   = cstring"SDL.window.shape"
     PROP_WINDOW_ANDROID_WINDOW_POINTER          = cstring"SDL.window.android.window"
     PROP_WINDOW_ANDROID_SURFACE_POINTER         = cstring"SDL.window.android.surface"
     PROP_WINDOW_UIKIT_WINDOW_POINTER            = cstring"SDL.window.uikit.window"
@@ -246,6 +251,7 @@ type
     PROP_WINDOW_WAYLAND_EGL_WINDOW_POINTER      = cstring"SDL.window.wayland.egl_window"
     PROP_WINDOW_WAYLAND_XDG_SURFACE_POINTER     = cstring"SDL.window.wayland.xdg_surface"
     PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_POINTER    = cstring"SDL.window.wayland.xdg_toplevel"
+    PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_EXPORT_HANDLE_POINTER  = cstring"SDL.window.wayland.xdg_toplevel_export_handle"
     PROP_WINDOW_WAYLAND_XDG_POPUP_POINTER       = cstring"SDL.window.wayland.xdg_popup"
     PROP_WINDOW_WAYLAND_XDG_POSITIONER_POINTER  = cstring"SDL.window.wayland.xdg_positioner"
     PROP_WINDOW_X11_DISPLAY_POINTER             = cstring"SDL.window.x11.display"

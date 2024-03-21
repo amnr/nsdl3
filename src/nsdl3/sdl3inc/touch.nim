@@ -5,6 +5,8 @@
 
 {.push raises: [].}
 
+from mouse import MouseID
+
 type
   TouchID*  = uint64
   FingerID* = uint64
@@ -22,10 +24,10 @@ type
     pressure*:  cfloat
 
 const
-  TOUCH_MOUSEID*  = cast[uint32](-1'i32)
+  TOUCH_MOUSEID*  = cast[MouseID](-1'i32)
     ##  Device ID for mouse events simulated with touch input.
 
-  MOUSE_TOUCHID*  = cast[uint64](-1'i64)
+  MOUSE_TOUCHID*  = cast[TouchID](-1'i64)
     ##  Touch ID for touch events simulated with mouse input.
 
 # vim: set sts=2 et sw=2:
