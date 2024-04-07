@@ -1,5 +1,5 @@
 # Package info.
-version       = "0.9.7"
+version       = "0.9.8"
 author        = "Amun"
 description   = "High level SDL 3.0 shared library wrapper"
 license       = "NCSA OR MIT OR Zlib"

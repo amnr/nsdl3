@@ -15,7 +15,7 @@ const
   win_height  = 600
 
 proc draw_checkerboard(texture: Texture) =
-  var format: uint32
+  var format: PixelFormatEnum
   var access, width, height: int
   assert QueryTexture(texture, format, access, width, height)
   echo format, ' ', access, ' ', width, " x ", height

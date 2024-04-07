@@ -8,15 +8,15 @@
 from pixels import FColor, PixelFormatEnum
 from rect import FPoint
 
+const
+  SOFTWARE_RENDERER*  = cstring"software"
+    ##  Software renderer name.
+
 type
   RendererFlags* = distinct uint32
     ##  Renderer flags.
 
-func `or`*(a, b: RendererFlags): RendererFlags {.borrow.}
-
 const
-  RENDERER_SOFTWARE*      = RendererFlags 0x00000001
-  RENDERER_ACCELERATED*   = RendererFlags 0x00000002
   RENDERER_PRESENTVSYNC*  = RendererFlags 0x00000004
 
 type

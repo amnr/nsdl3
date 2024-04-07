@@ -950,6 +950,12 @@ when use_mouse:
 
   # Uint32 SDL_GetRelativeMouseState(float *x, float *y)
 
+  proc HasMouse*(): bool {.inline.} =
+    ##  Return whether a mouse is currently connected.
+    ##
+    ##  See: `SDL_HasMouse`.
+    SDL_HasMouse()
+
   proc HideCursor*(): bool {.discardable, inline.} =
     ##  Hide the cursor.
     ##
@@ -1231,8 +1237,8 @@ proc GetRenderer*(window: Window): Renderer =
 # int SDL_LockTextureToSurface(SDL_Texture *texture, const SDL_Rect *rect,
 #     SDL_Surface **surface)
 
-proc QueryTexture*(texture: Texture, format: var uint32, access: var int,
-                   w: var int, h: var int): bool =
+proc QueryTexture*(texture: Texture, format: var PixelFormatEnum,
+                   access: var int, w: var int, h: var int): bool =
   ##  ```c
   ##  int SDL_QueryTexture(SDL_Texture *texture, Uint32 *format, int *access,
   ##                       int *w, int *h)
@@ -2161,14 +2167,6 @@ proc GetWindowFullscreenMode*(window: Window = nil): ptr DisplayMode =
   ensure_not_nil "SDL_GetWindowFullscreenMode":
     SDL_GetWindowFullscreenMode window
 
-proc GetWindowGrab*(window: Window): bool {.inline.} =
-  ##  Get a window's input grab mode.
-  ##
-  ##  ```c
-  ##  SDL_bool SDL_GetWindowGrab(SDL_Window *window)
-  ##  ```
-  SDL_GetWindowGrab window
-
 # void *SDL_GetWindowICCProfile(SDL_Window *window, size_t *size)
 
 proc GetWindowID*(window: Window): WindowID {.inline.} =
@@ -2332,15 +2330,6 @@ proc SetWindowFullscreenMode*(window: Window, mode: ptr DisplayMode): bool =
   ##  ```
   ensure_zero "SDL_SetWindowFullscreenMode":
     SDL_SetWindowFullscreenMode window, mode
-
-proc SetWindowGrab*(window: Window, grabbed: bool): bool =
-  ##  Set a window's input grab mode.
-  ##
-  ##  ```c
-  ##  int SDL_SetWindowGrab(SDL_Window *window, SDL_bool grabbed)
-  ##  ```
-  ensure_zero "SDL_SetWindowGrab":
-    SDL_SetWindowGrab window, grabbed
 
 # int SDL_SetWindowHitTest(SDL_Window *window, SDL_HitTest callback,
 #     void *callback_data)

@@ -8,14 +8,28 @@
 from events import Event
 
 type
-  AppInit_func* = proc (argc: cint, argv: cstringArray): cint {.cdecl, gcsafe, raises: [].}
+  AppInitFunc* = proc (
+    appstate  : ptr pointer,
+    argc      : cint,
+    argv      : cstringArray
+  ): cint {.cdecl, gcsafe, raises: [].}
 
-  AppIterate_func* = proc (): cint {.cdecl, gcsafe, raises: [].}
+  AppIterateFunc* = proc (
+    appstate  : ptr pointer
+  ): cint {.cdecl, gcsafe, raises: [].}
 
-  AppEvent_func* = proc (event: ptr Event): cint {.cdecl, gcsafe, raises: [].}
+  AppEventFunc* = proc (
+    appstate  : ptr pointer,
+    event     : ptr Event
+  ): cint {.cdecl, gcsafe, raises: [].}
 
-  AppQuit_func* = proc () {.cdecl, gcsafe, raises: [].}
+  AppQuitFunc* = proc (
+    appstate  : ptr pointer
+  ) {.cdecl, gcsafe, raises: [].}
 
-  Main_func* = proc (argc: cint, argv: cstringArray): cint {.cdecl, gcsafe, raises: [].}
+  MainFunc* = proc (
+    argc      : cint,
+    argv      : cstringArray
+  ): cint {.cdecl, gcsafe, raises: [].}
 
 # vim: set sts=2 et sw=2:

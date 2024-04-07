@@ -5,6 +5,8 @@
 
 {.push raises: [].}
 
+from mouse import MouseID
+
 type
   PenID* = distinct uint32
     ##  `PenIDs` identify pens uniquely within a session.
@@ -12,7 +14,7 @@ type
 const
   PEN_INVALID*  = PenID 0     ##  Reserved invalid `PenID` is valid.
 
-  PEN_MOUSEID*  = cast[PenID](-2)
+  PEN_MOUSEID*  = cast[MouseID](-2)
     ##  Device ID for mouse events triggered by pen events.
 
   PEN_INFO_UNKNOWN* = -1

@@ -8,6 +8,7 @@
 type
   PowerState* {.size: cint.sizeof.} = enum    # XXX: TODO: check size.
     ##  Power state.
+    POWERSTATE_ERROR      = -1
     POWERSTATE_UNKNOWN
     POWERSTATE_ON_BATTERY
     POWERSTATE_NO_BATTERY

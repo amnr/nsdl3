@@ -138,6 +138,8 @@ proc main() =
   defer:
     DestroyTexture texture
 
+  assert SetTextureScaleMode(texture, SCALEMODE_NEAREST)
+
   loop window, renderer, texture
 
 when isMainModule:

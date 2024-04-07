@@ -128,6 +128,8 @@ proc main() =
   defer:
     DestroyTexture texture
 
+  assert SetTextureScaleMode(texture, SCALEMODE_NEAREST)
+
   # SDL_TEXTUREACCESS_TARGET
   # SDL_SetRenderTarget(SDL_Renderer *renderer,SDL_Texture  *texture)
 

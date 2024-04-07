@@ -34,15 +34,12 @@ type
     JOYSTICK_TYPE_ARCADE_PAD
     JOYSTICK_TYPE_THROTTLE
 
-  JoystickPowerLevel* {.size: cint.sizeof.} = enum
-    ##  Joystick power level.
-    JOYSTICK_POWER_UNKNOWN  = -1
-    JOYSTICK_POWER_EMPTY    ##  <= 5%.
-    JOYSTICK_POWER_LOW      ##  <= 20%.
-    JOYSTICK_POWER_MEDIUM   ##  <= 70%.
-    JOYSTICK_POWER_FULL     ##  <= 100%.
-    JOYSTICK_POWER_WIRED
-    JOYSTICK_POWER_MAX
+  JoystickConnectionState* {.size: cint.sizeof.} = enum
+    ##  Joystick connection state.
+    JOYSTICK_CONNECTION_INVALID   = -1
+    JOYSTICK_CONNECTION_UNKNOWN
+    JOYSTICK_CONNECTION_WIRED
+    JOYSTICK_CONNECTION_WIRELESS
 
 const
   JOYSTICK_AXIS_MAX*  = 32767

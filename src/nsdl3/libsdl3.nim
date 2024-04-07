@@ -429,6 +429,8 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_GetNumJoystickHats(joystick: Joystick): cint
 
+    # proc SDL_HasJoystick(): SdlBool
+
     proc SDL_OpenJoystick(instance_id: JoystickID): Joystick
 
     proc SDL_UpdateJoysticks()
@@ -471,7 +473,8 @@ dlgencalls "sdl3", lib_paths:
     # int SDL_RumbleJoystickTriggers(joystick: Joystick, Uint16 left_rumble, Uint16 right_rumble, Uint32 duration_ms)
     # int SDL_SetJoystickLED(joystick: Joystick, Uint8 red, Uint8 green, Uint8 blue)
     # int SDL_SendJoystickEffect(joystick: Joystick, const void *data, int size)
-    # SDL_JoystickPowerLevel SDL_GetJoystickPowerLevel(joystick: Joystick)
+    # SDL_JoystickConnectionState SDL_GetJoystickConnectionState(SDL_Joystick *joystick);
+    # SDL_PowerState SDL_GetJoystickPowerInfo(SDL_Joystick *joystick, int *percent);
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_keyboard.h>                                                     #
@@ -558,14 +561,19 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_GetGlobalMouseState(x, y: ptr cfloat): uint32
 
+    # SDL_MouseID *SDLCALL SDL_GetMice(int *count);
+
     proc SDL_GetMouseFocus(): Window
+
+    # const char *SDLCALL SDL_GetMouseInstanceName(SDL_MouseID instance_id);
 
     proc SDL_GetMouseState(x, y: ptr cfloat): uint32
 
-    # SDL_bool
     proc SDL_GetRelativeMouseMode(): SdlBool
 
     # Uint32 SDL_GetRelativeMouseState(float *x, float *y)
+
+    proc SDL_HasMouse(): SdlBool
 
     proc SDL_HideCursor(): cint
 
@@ -824,7 +832,7 @@ dlgencalls "sdl3", lib_paths:
   # int SDL_LockTextureToSurface(SDL_Texture *texture, const SDL_Rect *rect,
   #     proc SDL_Surface **surface)
 
-  proc SDL_QueryTexture(texture: Texture, format: ptr uint32,
+  proc SDL_QueryTexture(texture: Texture, format: ptr PixelFormatEnum,
                         access: ptr cint, w, h: ptr cint): cint
 
   proc SDL_RenderClear(renderer: Renderer): cint
@@ -1226,8 +1234,6 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_GetWindowFullscreenMode(window: Window): ptr DisplayMode
 
-  proc SDL_GetWindowGrab(window: Window): SdlBool
-
   # void *SDL_GetWindowICCProfile(SDL_Window *window, size_t *size)
 
   proc SDL_GetWindowID(window: Window): WindowID
@@ -1281,8 +1287,6 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_SetWindowFullscreenMode(window: Window,
                                    mode: ptr DisplayMode): cint
-
-  proc SDL_SetWindowGrab(window: Window, grabbed: SdlBool): cint
 
   # int SDL_SetWindowHitTest(SDL_Window *window, SDL_HitTest callback,
   #     void *callback_data)

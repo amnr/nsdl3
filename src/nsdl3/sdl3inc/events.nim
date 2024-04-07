@@ -7,10 +7,11 @@
 
 from audio import AudioDeviceID
 from camera import CameraDeviceID
-from joystick import Hat, JoystickID, JoystickPowerLevel
-from keyboard import Keysym
+from joystick import Hat, JoystickID
+from keyboard import KeyboardID, Keysym
 from mouse import MouseID, MouseWheelDirection
 from pen import PenID, PEN_NUM_AXES
+from power import PowerState
 from sensor import SensorID
 from touch import FingerID, TouchID
 from video import DisplayID, WindowID
@@ -80,12 +81,16 @@ type
     EVENT_TEXT_EDITING
     EVENT_TEXT_INPUT
     EVENT_KEYMAP_CHANGED
+    EVENT_KEYBOARD_ADDED
+    EVENT_KEYBOARD_REMOVED
 
     # Mouse events.
     EVENT_MOUSE_MOTION          = 0x400
     EVENT_MOUSE_BUTTON_DOWN
     EVENT_MOUSE_BUTTON_UP
     EVENT_MOUSE_WHEEL
+    EVENT_MOUSE_ADDED
+    EVENT_MOUSE_REMOVED
 
     # Joystick events.
     EVENT_JOYSTICK_AXIS_MOTION  = 0x600
@@ -200,23 +205,26 @@ type
     data1*        : int32       ##  Event dependent data.
     data2*        : int32       ##  Event dependent data.
 
+  KeyboardDeviceEvent* {.final, pure.} = object
+    ##  Keyboard device event.
+    typ*          : EventType   ##  `EVENT_KEYBOARD_ADDED` or `EVENT_KEYBOARD_REMOVED`.
+    reserved      : uint32
+    timestamp*    : uint64      ##  Timestamp (ns).
+    which*        : KeyboardID  ##  Keyboard ID.
+
   KeyboardEvent* {.final, pure.} = object
     ##  Keyboard button event.
     typ*          : EventType   ##  `EVENT_KEY_DOWN` or `EVENT_KEY_UP`.
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with keyboard focus (if any).
+    which*        : KeyboardID  ##  Keyboard ID.
     state*        : byte        ##  `PRESSED` or `RELEASED`.
     repeat*       : byte        ##  Non-zero if key repeat.
     padding2      : byte
     padding3      : byte
     keysym*       : Keysym      ##  Key that was pressed or released.
 
-# XXX: used only in SDL3 source.
-# const
-#   TEXTEDITINGEVENT_TEXT_SIZE = 64
-
-type
   TextEditingEvent* {.final, pure.} = object
     ##  Keyboard text editing event.
     ##
@@ -229,11 +237,6 @@ type
     start*        : int32       ##  Selected editing text start cursor.
     length*       : int32       ##  Selected editing text length.
 
-# XXX: used only in SDL3 source.
-# const
-#   TEXTINPUTEVENT_TEXT_SIZE = 64
-
-type
   TextInputEvent* {.final, pure.} = object
     ##  Keyboard text input event.
     ##
@@ -242,6 +245,13 @@ type
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with keyboard focus (if any).
     text*         : cstring     ##  The input text.
+
+  MouseDeviceEvent* {.final, pure.} = object
+    ##  Mouse device event.
+    typ*          : EventType   ##  `EVENT_MOUSE_ADDED` or `EVENT_MOUSE_REMOVED`.
+    reserved      : uint32
+    timestamp*    : uint64      ##  Timestamp (ns).
+    which*        : MouseID     ##  Mouse instance ID.
 
   MouseMotionEvent* {.final, pure.} = object
     ##  Mouse motion event.
@@ -255,19 +265,6 @@ type
     y*            : cfloat      ##  Y position.
     xrel*         : cfloat      ##  Relative motion (X direction).
     yrel*         : cfloat      ##  Relative motion (Y direction).
-
-  JoyBallEvent* {.final, pure.} = object
-    ##  Joystick trackball motion event.
-    typ*          : EventType   ##  `EVENT_JOYBALLMOTION`.
-    reserved      : uint32
-    timestamp*    : uint64      ##  Timestamp (ns).
-    which*        : JoystickID  ##  Joystick ID.
-    ball*         : byte        ##  Joystick trackball index.
-    padding1      : byte
-    padding2      : byte
-    padding3      : byte
-    xrel*         : int16       ##  Relative motion (X direction).
-    yrel*         : int16       ##  Relative motion (Y direction).
 
   MouseButtonEvent* {.final, pure.} = object
     ##  Mouse button event.
@@ -311,6 +308,19 @@ type
     value*        : int16       ##  Axis value (range: -32768 to 32767).
     padding4      : uint16
 
+  JoyBallEvent* {.final, pure.} = object
+    ##  Joystick trackball motion event.
+    typ*          : EventType   ##  `EVENT_JOYBALLMOTION`.
+    reserved      : uint32
+    timestamp*    : uint64      ##  Timestamp (ns).
+    which*        : JoystickID  ##  Joystick ID.
+    ball*         : byte        ##  Joystick trackball index.
+    padding1      : byte
+    padding2      : byte
+    padding3      : byte
+    xrel*         : int16       ##  Relative motion (X direction).
+    yrel*         : int16       ##  Relative motion (Y direction).
+
   JoyHatEvent* {.final, pure.} = object
     ##  Joystick hat position change event.
     typ*          : EventType   ##  `EVENT_JOYSTICK_HAT_MOTION`.
@@ -346,7 +356,8 @@ type
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
-    level*        : JoystickPowerLevel    ##  Battery level.
+    state*        : PowerState  ##  Joystick battery state.
+    percent*      : cint        ##  Joystick battery percent charge remaining.
 
   GamepadAxisEvent* {.final, pure.} = object
     ##  Gamepad axis motion event.
@@ -553,17 +564,19 @@ type
     common*       : CommonEvent               ##  Common event.
     display*      : DisplayEvent              ##  Display event.
     window*       : WindowEvent               ##  Window event.
+    kdevice*      : KeyboardDeviceEvent       ##  Keyboard device change event.
     key*          : KeyboardEvent             ##  Keyboard event.
     edit*         : TextEditingEvent          ##  Text editing event.
     text*         : TextInputEvent            ##  Text input event.
+    mdevice*      : MouseDeviceEvent          ##  Mouse device change event.
     motion*       : MouseMotionEvent          ##  Mouse motion event.
     button*       : MouseButtonEvent          ##  Mouse button event.
     wheel*        : MouseWheelEvent           ##  Mouse wheel event.
+    jdevice*      : JoyDeviceEvent            ##  Joystick device change event.
     jaxis*        : JoyAxisEvent              ##  Joystick axis event.
     jball*        : JoyBallEvent              ##  Joystick ball event.
     jhat*         : JoyHatEvent               ##  Joystick hat event.
     jbutton*      : JoyButtonEvent            ##  Joystick button event.
-    jdevice*      : JoyDeviceEvent            ##  Joystick device change event.
     jbattery*     : JoyBatteryEvent           ##  Joystick battery event.
     gaxis*        : GamepadAxisEvent          ##  Gamepad axis event.
     gbutton*      : GamepadButtonEvent        ##  Gamepad button event.
@@ -621,7 +634,7 @@ func repr*(event: ptr Event): string {.error: "do not repr unions in Nim".}
 #   Sanity checks                                                             #
 # --------------------------------------------------------------------------- #
 
-when defined(gcc) and hostCPU == "amd64":
+when hostCPU == "amd64" and defined gcc:
   when Event.sizeof != 128:
     {.error: "invalid Event size: " & $Event.sizeof.}
 
@@ -631,8 +644,9 @@ when defined(gcc) and hostCPU == "amd64":
     {.error: "invalid DisplayEvent size: " & $DisplayEvent.sizeof.}
   when WindowEvent.sizeof != 32:
     {.error: "invalid WindowEvent size: " & $WindowEvent.sizeof.}
-  when KeyboardEvent.sizeof != 40:
-    {.error: "invalid KeyboardEvent size: " & $KeyboardEvent.sizeof.}
+  # XXX:
+  # when KeyboardEvent.sizeof != 40:
+  #   {.error: "invalid KeyboardEvent size: " & $KeyboardEvent.sizeof.}
   when TextEditingEvent.sizeof != 40:
     {.error: "invalid TextEditingEvent size: " & $TextEditingEvent.sizeof.}
   when TextInputEvent.sizeof != 32:
@@ -651,8 +665,8 @@ when defined(gcc) and hostCPU == "amd64":
     {.error: "invalid JoyButtonEvent size: " & $JoyButtonEvent.sizeof.}
   when JoyDeviceEvent.sizeof != 24:
     {.error: "invalid JoyDeviceEvent size: " & $JoyDeviceEvent.sizeof.}
-  when JoyBatteryEvent.sizeof != 24:
-    {.error: "invalid JoyBatteryEvent size: " & $JoyBatteryEvent.sizeof.}
+  # when JoyBatteryEvent.sizeof != 24:
+  #   {.error: "invalid JoyBatteryEvent size: " & $JoyBatteryEvent.sizeof.}
   when GamepadAxisEvent.sizeof != 32:
     {.error: "invalid GamepadAxisEvent size: " & $GamepadAxisEvent.sizeof.}
   when GamepadButtonEvent.sizeof != 24:

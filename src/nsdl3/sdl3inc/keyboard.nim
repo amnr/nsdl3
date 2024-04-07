@@ -9,6 +9,10 @@ import keycode
 import scancode
 
 type
+  KeyboardID* = distinct uint32
+    ##  Keyboard ID.
+
+type
   Keysym* {.final, pure.} = object
     ##  Keysym.
     scancode*   : Scancode      ##  SDL physical key code.
