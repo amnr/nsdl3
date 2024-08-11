@@ -19,7 +19,7 @@ const
 
 proc loop(renderer: Renderer, texture: Texture) =
   var
-    pixels: array[Width * Height, uint32]
+    surface: SurfacePtr = nil
     event: Event
     cnt = 0
 
@@ -30,7 +30,7 @@ proc loop(renderer: Renderer, texture: Texture) =
     while PollEvent event:
       case event.typ
       of EVENT_KEY_DOWN:
-        case event.key.keysym.sym
+        case event.key.key
         of SDLK_ESCAPE, SDLK_q:
           return
         else:
@@ -45,18 +45,23 @@ proc loop(renderer: Renderer, texture: Texture) =
       let
         x = rand Width - 1
         y = rand Height - 1
-        color = rand 0x00ffffff
+        r = byte rand 0xff
+        g = byte rand 0xff
+        b = byte rand 0xff
 
-      pixels[Width * y + x] = uint32 color
+      if LockTextureToSurface(texture, surface):
+        #  pixels[(pitch div 4) * y + x] = uint32 color
+        discard WriteSurfacePixel(surface, x, y, r, g, b, 0xff)
+        UnlockTexture texture
       inc cnt
     else:
       # Clear the pixmap if max number of pixels were drawn.
-      for i in 0 ..< pixels.len:
-        pixels[i] = 0
+      assert SetRenderDrawColor(renderer, 0x00, 0x00, 0x00)
+      assert RenderClear renderer
       cnt = 0
 
     # Update the texture with new pixel data.
-    discard UpdateTexture(texture, pixels[0].addr, Width * uint32.sizeof)
+    # discard UpdateTexture(texture, pixels[0].addr, Width * uint32.sizeof)
 
     # Render the texture.
     discard RenderClear renderer
@@ -97,7 +102,8 @@ proc main() =
 
   # Create renderer texture.
   let texture = CreateTexture(renderer, PIXELFORMAT_ARGB8888,
-                                        TEXTUREACCESS_STATIC, Width, Height)
+                              # TEXTUREACCESS_STATIC, Width, Height)
+                              TEXTUREACCESS_STREAMING, Width, Height)
   if texture == nil:
     echo "Failed to create texture: ", GetError()
     quit QuitFailure

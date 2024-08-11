@@ -26,4 +26,14 @@ const
   INIT_SENSOR*    = InitFlags 0x0000_8000   ##  Implies `INIT_EVENTS`.
   INIT_CAMERA*    = InitFlags 0x0001_0000   ##  Implies `INIT_EVENTS`.
 
+type
+  AppMetadataProperty* = enum
+    PROP_APP_METADATA_NAME_STRING       = cstring"SDL.app.metadata.name"
+    PROP_APP_METADATA_VERSION_STRING    = cstring"SDL.app.metadata.version"
+    PROP_APP_METADATA_IDENTIFIER_STRING = cstring"SDL.app.metadata.identifier"
+    PROP_APP_METADATA_CREATOR_STRING    = cstring"SDL.app.metadata.creator"
+    PROP_APP_METADATA_COPYRIGHT_STRING  = cstring"SDL.app.metadata.copyright"
+    PROP_APP_METADATA_URL_STRING        = cstring"SDL.app.metadata.url"
+    PROP_APP_METADATA_TYPE_STRING       = cstring"SDL.app.metadata.type"
+
 # vim: set sts=2 et sw=2:

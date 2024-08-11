@@ -21,16 +21,20 @@ proc main() =
   defer:
     Quit()
 
-  let ver = GetVersion()
-  echo "Version ", ver.major, '.', ver.minor, '.', ver.patch
-  echo "Version ", $ver
+  let vernum = GetVersion()
+
+  let major = vernum div 1000_000
+  let minor = (vernum div 1000) mod 1000
+  let patch = vernum mod 1000
+  let version = $major & '.' & $minor & '.' & $patch
+
+  echo "Version ", version
   echo "Revision ", GetRevision()
 
-  let sdl_version = $ver.major & '.' & $ver.minor & '.' & $ver.patch
 
-  let title = "SDL" & $ver.major
+  let title = "SDL" & version
   let message = "Nim " & NimVersion & '\n' &
-                "SDL " & sdl_version
+                "SDL " & version
 
   discard ShowSimpleMessageBox(MESSAGEBOX_INFORMATION, title, message)
 

@@ -7,11 +7,14 @@
 
 from audio import AudioDeviceID
 from camera import CameraDeviceID
+from init import SdlBool
 from joystick import Hat, JoystickID
-from keyboard import KeyboardID, Keysym
-from mouse import MouseID, MouseWheelDirection
+from keyboard import KeyboardID
+from keycode import Keycode, Keymod
+from mouse import MouseButtonFlags, MouseID, MouseWheelDirection
 from pen import PenID, PEN_NUM_AXES
 from power import PowerState
+from scancode import Scancode
 from sensor import SensorID
 from touch import FingerID, TouchID
 from video import DisplayID, WindowID
@@ -44,17 +47,18 @@ type
     EVENT_DISPLAY_ADDED
     EVENT_DISPLAY_REMOVED
     EVENT_DISPLAY_MOVED
+    EVENT_DISPLAY_DESKTOP_MODE_CHANGED
+    EVENT_DISPLAY_CURRENT_MODE_CHANGED
     EVENT_DISPLAY_CONTENT_SCALE_CHANGED
-    EVENT_DISPLAY_HDR_STATE_CHANGED
 
     # Window events.
-    # EVENT_SYSWM = 0x201
     EVENT_WINDOW_SHOWN          = 0x202
     EVENT_WINDOW_HIDDEN
     EVENT_WINDOW_EXPOSED
     EVENT_WINDOW_MOVED
     EVENT_WINDOW_RESIZED
     EVENT_WINDOW_PIXEL_SIZE_CHANGED
+    EVENT_WINDOW_METAL_VIEW_RESIZED
     EVENT_WINDOW_MINIMIZED
     EVENT_WINDOW_MAXIMIZED
     EVENT_WINDOW_RESTORED
@@ -63,17 +67,18 @@ type
     EVENT_WINDOW_FOCUS_GAINED
     EVENT_WINDOW_FOCUS_LOST
     EVENT_WINDOW_CLOSE_REQUESTED
-    EVENT_WINDOW_TAKE_FOCUS
     EVENT_WINDOW_HIT_TEST
     EVENT_WINDOW_ICCPROF_CHANGED
     EVENT_WINDOW_DISPLAY_CHANGED
     EVENT_WINDOW_DISPLAY_SCALE_CHANGED
+    EVENT_WINDOW_SAFE_AREA_CHANGED
     EVENT_WINDOW_OCCLUDED
     EVENT_WINDOW_ENTER_FULLSCREEN
     EVENT_WINDOW_LEAVE_FULLSCREEN
     EVENT_WINDOW_DESTROYED
     EVENT_WINDOW_PEN_ENTER
     EVENT_WINDOW_PEN_LEAVE
+    EVENT_WINDOW_HDR_STATE_CHANGED
 
     # Keyboard events.
     EVENT_KEY_DOWN              = 0x300
@@ -83,6 +88,7 @@ type
     EVENT_KEYMAP_CHANGED
     EVENT_KEYBOARD_ADDED
     EVENT_KEYBOARD_REMOVED
+    EVENT_TEXT_EDITING_CANDIDATES
 
     # Mouse events.
     EVENT_MOUSE_MOTION          = 0x400
@@ -176,7 +182,7 @@ type
 
 const
   EVENT_DISPLAY_FIRST*  = EVENT_DISPLAY_ORIENTATION
-  EVENT_DISPLAY_LAST*   = EVENT_DISPLAY_HDR_STATE_CHANGED
+  EVENT_DISPLAY_LAST*   = EVENT_DISPLAY_CONTENT_SCALE_CHANGED
 
   EVENT_WINDOW_FIRST*   = EVENT_WINDOW_SHOWN
   EVENT_WINDOW_LAST*    = EVENT_WINDOW_PEN_LEAVE
@@ -194,7 +200,8 @@ type
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     display_id*   : DisplayID   ##  Associated display.
-    data1         : int32       ##  Event dependent data.
+    data1*        : int32       ##  Event dependent data.
+    data2*        : int32       ##  Event dependent data.
 
   WindowEvent* {.final, pure.} = object
     ##  Window state change event.
@@ -219,11 +226,12 @@ type
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with keyboard focus (if any).
     which*        : KeyboardID  ##  Keyboard ID.
+    scancode*     : Scancode
+    key*          : Keycode
+    `mod`*        : Keymod
+    raw*          : uint16
     state*        : byte        ##  `PRESSED` or `RELEASED`.
     repeat*       : byte        ##  Non-zero if key repeat.
-    padding2      : byte
-    padding3      : byte
-    keysym*       : Keysym      ##  Key that was pressed or released.
 
   TextEditingEvent* {.final, pure.} = object
     ##  Keyboard text editing event.
@@ -237,11 +245,23 @@ type
     start*        : int32       ##  Selected editing text start cursor.
     length*       : int32       ##  Selected editing text length.
 
+  TextEditingCandidatesEvent* {.final, pure.} = object
+    ##  Keyboard IME candidates input event.
+    typ*                : EventType     ##  `EVENT_TEXT_INPUT`.
+    reserved            : uint32
+    timestamp*          : uint64        ##  Timestamp (ns).
+    window_id*          : WindowID      ##  Window with keyboard focus (if any).
+    candidates*         : cstringArray  ##  The list of candidates or `nil`.
+    num_candidates*     : int32
+    selected_candidate* : int32
+    horizontal*         : SdlBool
+
   TextInputEvent* {.final, pure.} = object
     ##  Keyboard text input event.
     ##
     ##  .. note:: This event should be cleaned up with `cleanup_event()` after processing.
     typ*          : EventType   ##  `EVENT_TEXT_INPUT`.
+    reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with keyboard focus (if any).
     text*         : cstring     ##  The input text.
@@ -260,7 +280,7 @@ type
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with mouse focus (if any).
     which*        : MouseID     ##  Mouse instance ID, `TOUCH_MOUSEID` or `PEN_MOUSEID`.
-    state*        : uint32      ##  Button state.
+    state*        : MouseButtonFlags      ##  Button state.
     x*            : cfloat      ##  X position.
     y*            : cfloat      ##  Y position.
     xrel*         : cfloat      ##  Relative motion (X direction).
@@ -392,9 +412,7 @@ type
                                 ##  or `EVENT_GAMEPAD_STEAM_HANDLE_UPDATED`.
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
-    which*        : JoystickID  ##  Joystick device index for the `ADDED` event
-                                ##  or instance id for the `REMOVED`
-                                ##  or `REMAPPED` event.
+    which*        : JoystickID  ##  Joystick instance ID.
 
   GamepadTouchpadEvent* {.final, pure.} = object
     ##  Gamepad touchpad event.
@@ -428,7 +446,7 @@ type
     which*        : AudioDeviceID   ##  Audio device index for the `ADDED` event.
                                     ##  (valid until next `get_num_audio_devices()
                                     ##  call) or `AudioDeviceID` for the `REMOVED` event.
-    iscapture*    : byte            ##  Output device (0) or capture device (non-zero).
+    recording*    : byte            ##  Playback device (0) or recording device (non-zero).
     padding1      : byte
     padding2      : byte
     padding3      : byte
@@ -439,9 +457,6 @@ type
     reserved      : uint32
     timestamp*    : uint64          ##  Timestamp (ns).
     which*        : CameraDeviceID  ##  Camera device index for the `ADDED`, `REMOVED` or `CHANGING` event.
-    padding1      : byte
-    padding2      : byte
-    padding3      : byte
 
   TouchFingerEvent* {.final, pure.} = object
     ##  Touch finger event.
@@ -457,11 +472,6 @@ type
     pressure*     : cfloat      ##  Normalized, range 0 - 1.
     window_id*    : WindowID    ##  Window underneath the finger (if any).
 
-# XXX: seems not to be used anymore
-# const
-#   DROPEVENT_DATA_SIZE = 64
-
-type
   PenTipEvent* {.final, pure.} = object
     ##  Pressure-sensitive pen touched or stopped touching surface.
     typ*          : EventType   ##  `EVENT_PEN_DOWN` or ``SDL_EVENT_PEN_UP`.
@@ -567,6 +577,7 @@ type
     kdevice*      : KeyboardDeviceEvent       ##  Keyboard device change event.
     key*          : KeyboardEvent             ##  Keyboard event.
     edit*         : TextEditingEvent          ##  Text editing event.
+    edit_candidates*  : TextEditingCandidatesEvent  ##  Text editing candidates event.
     text*         : TextInputEvent            ##  Text input event.
     mdevice*      : MouseDeviceEvent          ##  Mouse device change event.
     motion*       : MouseMotionEvent          ##  Mouse motion event.
@@ -640,8 +651,6 @@ when hostCPU == "amd64" and defined gcc:
 
   when CommonEvent.sizeof != 16:
     {.error: "invalid CommonEvent size: " & $CommonEvent.sizeof.}
-  when DisplayEvent.sizeof != 24:
-    {.error: "invalid DisplayEvent size: " & $DisplayEvent.sizeof.}
   when WindowEvent.sizeof != 32:
     {.error: "invalid WindowEvent size: " & $WindowEvent.sizeof.}
   # XXX:

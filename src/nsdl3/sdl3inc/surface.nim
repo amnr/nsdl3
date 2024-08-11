@@ -5,9 +5,7 @@
 
 {.push raises: [].}
 
-from pixels import PixelFormat
-from properties import PropertiesID
-from rect import Rect
+from pixels import PixelFormatEnum
 
 type
   SurfaceFlags* = distinct uint32
@@ -19,12 +17,11 @@ func `or`*(a, b: SurfaceFlags): SurfaceFlags {.borrow.}
 func `==`*(a: SurfaceFlags, b: uint32): bool {.borrow.}
 
 const
-  SWSURFACE*    = SurfaceFlags 0            ##  Just here for compatibility.
-  PREALLOC*     = SurfaceFlags 0x00000001   ##  Surface uses prealloc. memory.
-  RLEACCEL*     = SurfaceFlags 0x00000002   ##  Surface is RLE encoded.
-  DONTFREE*     = SurfaceFlags 0x00000004   ##  Surface is ref. internally.
-  SIMD_ALIGNED* = SurfaceFlags 0x00000008   ##  Surface uses aligned memory.
-  SURFACE_USES_PROPERTIES*  = SurfaceFlags 0x00000010   ##  Surface uses properties.
+  SURFACE_DEFAULT*        = SurfaceFlags 0
+  SURFACE_PREALLOCATED*   = SurfaceFlags 0x00000001
+  SURFACE_LOCK_NEEDED*    = SurfaceFlags 0x00000002
+  SURFACE_LOCKED*         = SurfaceFlags 0x00000004
+  SURFACE_SIMD_ALIGNED*   = SurfaceFlags 0x00000008
 
 # Note: mustlock moved after Surface.
 
@@ -52,30 +49,16 @@ type
     ##    This structure should be treated as read-only, except for pixels,
     ##    which, if not `nil`
     ## , contains the raw pixel data for the surface.
-    flags*        : SurfaceFlags      ##  Read-only.
-    format*       : ptr PixelFormat   ##  Read-only.
-    w*            : cint              ##  Read-only.
-    h*            : cint              ##  Read-only.
-    pitch*        : cint              ##  Read-only.
+    flags*        : SurfaceFlags                ##  Read-only.
+    format*       : PixelFormatEnum             ##  Read-only.
+    w*            : cint                        ##  Read-only.
+    h*            : cint                        ##  Read-only.
+    pitch*        : cint                        ##  Read-only.
     pixels*       : ptr UncheckedArray[byte]    ##  Read-write.
+    refcount      : cint
+    internal      : ptr SurfaceData
 
-    # Application data associated with the surface.
-    reserved      : pointer           ##  Private.
-
-    # Information needed for surfaces requiring locks.
-    locked*       : cint              ##  Read-only.
-
-    # List of BlitMap that hold a reference to this surface.
-    list_blitmap  : pointer           ##  Private.
-
-    # Clipping information.
-    clip_rect*    : Rect              ##  Read-only.
-
-    # Info for fast blit mapping to other surfaces.
-    map           : ptr BlitMap       ##  Private.
-
-    # Reference count -- used when freeing surface.
-    refcount      : cint              ##  Read-mostly.
+  SurfaceData {.final, incompletestruct, pure.} = object
 
   SurfacePtr* = ptr Surface
     ##  Surface.
@@ -88,16 +71,9 @@ func pixels32*(self: ptr Surface): ptr UncheckedArray[uint32] {.inline.} =
   ##  `Surface` pixels as unchecked array of `uint32`.
   cast[ptr UncheckedArray[uint32]](self.pixels)
 
-# XXX:
-# The type of function used for surface blitting functions.
-# typedef int (SDLCALL *SDL_blit) (struct SDL_Surface *src, const SDL_Rect *srcrect,
-#                                  struct SDL_Surface *dst, const SDL_Rect *dstrect);
-
 func mustlock*(self: ptr Surface): bool {.inline.} =
   ##  Evaluates to true if the surface needs to be locked before access.
-  (self.flags and RLEACCEL) != 0
-
-# XXX: typedef SDL_blit
+  (self.flags and SURFACE_LOCK_NEEDED) != 0
 
 type
   PropSurface* = enum

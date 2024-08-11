@@ -35,7 +35,7 @@ proc loop(window: Window, renderer: Renderer, texture: Texture) =
     while PollEvent event:
       case event.typ
       of EVENT_KEYDOWN:
-        case event.key.keysym.sym
+        case event.key.key
         of SDLK_ESCAPE, SDLK_q:
           return
         of SDLK_SPACE:

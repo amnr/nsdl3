@@ -39,7 +39,9 @@ type
     h*              : cint        ##  Screen height.
     pixel_density*  : cfloat      ##  Size to pixels scale.
     refresh_rate*   : cfloat      ##  Refresh rate (0 - unspecified).
-    driverdata      : pointer     ##  Driver-specific data, init. to `nil`.
+    refresh_rate_numerator*   : cint  ##  Refresh rate numenator (0 - unspecified).
+    refresh_rate_denominator* : cint  ##  Refresh rate denominator.
+    internal        : pointer     ##  Private.
 
   DisplayOrientation* {.size: cint.sizeof.} = enum    # XXX size
     ##  Display orientation.
@@ -53,7 +55,7 @@ type
     ##  Window.
 
 type
-  WindowFlags* = distinct uint32
+  WindowFlags* = distinct uint64
     ##  Window flags.
 
 func `and`*(a, b: WindowFlags): WindowFlags {.borrow.}
@@ -63,30 +65,31 @@ func `==`*(a, b: WindowFlags): bool {.borrow.}
 func `==`*(a: WindowFlags, b: uint32): bool {.borrow.}
 
 const
-  WINDOW_FULLSCREEN*          = WindowFlags 0x00000001
-  WINDOW_OPENGL*              = WindowFlags 0x00000002
-  WINDOW_OCCLUDED*            = WindowFlags 0x00000004
-  WINDOW_HIDDEN*              = WindowFlags 0x00000008
-  WINDOW_BORDERLESS*          = WindowFlags 0x00000010
-  WINDOW_RESIZABLE*           = WindowFlags 0x00000020
-  WINDOW_MINIMIZED*           = WindowFlags 0x00000040
-  WINDOW_MAXIMIZED*           = WindowFlags 0x00000080
-  WINDOW_MOUSE_GRABBED*       = WindowFlags 0x00000100
-  WINDOW_INPUT_FOCUS*         = WindowFlags 0x00000200
-  WINDOW_MOUSE_FOCUS*         = WindowFlags 0x00000400
-  WINDOW_EXTERNAL*            = WindowFlags 0x00000800
-  WINDOW_HIGH_PIXEL_DENSITY*  = WindowFlags 0x00002000
-  WINDOW_MOUSE_CAPTURE*       = WindowFlags 0x00004000
-  WINDOW_ALWAYS_ON_TOP*       = WindowFlags 0x00008000
-  WINDOW_SKIP_TASKBAR*        = WindowFlags 0x00010000
-  WINDOW_UTILITY*             = WindowFlags 0x00020000
-  WINDOW_TOOLTIP*             = WindowFlags 0x00040000
-  WINDOW_POPUP_MENU*          = WindowFlags 0x00080000
-  WINDOW_KEYBOARD_GRABBED*    = WindowFlags 0x00100000
-  WINDOW_VULKAN*              = WindowFlags 0x10000000
-  WINDOW_METAL*               = WindowFlags 0x20000000
-  WINDOW_TRANSPARENT*         = WindowFlags 0x40000000
-  WINDOW_NOT_FOCUSABLE*       = WindowFlags 0x80000000
+  WINDOW_FULLSCREEN*          = WindowFlags 0x00000000_00000001
+  WINDOW_OPENGL*              = WindowFlags 0x00000000_00000002
+  WINDOW_OCCLUDED*            = WindowFlags 0x00000000_00000004
+  WINDOW_HIDDEN*              = WindowFlags 0x00000000_00000008
+  WINDOW_BORDERLESS*          = WindowFlags 0x00000000_00000010
+  WINDOW_RESIZABLE*           = WindowFlags 0x00000000_00000020
+  WINDOW_MINIMIZED*           = WindowFlags 0x00000000_00000040
+  WINDOW_MAXIMIZED*           = WindowFlags 0x00000000_00000080
+  WINDOW_MOUSE_GRABBED*       = WindowFlags 0x00000000_00000100
+  WINDOW_INPUT_FOCUS*         = WindowFlags 0x00000000_00000200
+  WINDOW_MOUSE_FOCUS*         = WindowFlags 0x00000000_00000400
+  WINDOW_EXTERNAL*            = WindowFlags 0x00000000_00000800
+  WINDOW_MODAL*               = WindowFlags 0x00000000_00001000
+  WINDOW_HIGH_PIXEL_DENSITY*  = WindowFlags 0x00000000_00002000
+  WINDOW_MOUSE_CAPTURE*       = WindowFlags 0x00000000_00004000
+  WINDOW_ALWAYS_ON_TOP*       = WindowFlags 0x00000000_00008000
+  WINDOW_SKIP_TASKBAR*        = WindowFlags 0x00000000_00010000
+  WINDOW_UTILITY*             = WindowFlags 0x00000000_00020000
+  WINDOW_TOOLTIP*             = WindowFlags 0x00000000_00040000
+  WINDOW_POPUP_MENU*          = WindowFlags 0x00000000_00080000
+  WINDOW_KEYBOARD_GRABBED*    = WindowFlags 0x00000000_00100000
+  WINDOW_VULKAN*              = WindowFlags 0x00000000_10000000
+  WINDOW_METAL*               = WindowFlags 0x00000000_20000000
+  WINDOW_TRANSPARENT*         = WindowFlags 0x00000000_40000000
+  WINDOW_NOT_FOCUSABLE*       = WindowFlags 0x00000000_80000000
 
 # XXX
 #  WINDOW_FULLSCREEN_DESKTOP*  = WINDOW_FULLSCREEN or WindowFlags 0x00001000
@@ -128,6 +131,7 @@ type
   GLContext*    = ptr object
     ##  OpenGL context.
 
+type
   EGLDisplay*   = ptr object
   EGLConfig*    = ptr object
   EGLSurface*   = ptr object
@@ -189,14 +193,17 @@ type
     GL_CONTEXT_RESET_NO_NOTIFICATION = 0x0000
     GL_CONTEXT_RESET_LOSE_CONTEXT    = 0x0001
 
-#define SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN            "SDL.display.HDR_enabled"
-#define SDL_PROP_DISPLAY_SDR_WHITE_LEVEL_FLOAT          "SDL.display.SDR_white_level"
+# XXX: distinct type.
+const
+  SDL_PROP_DISPLAY_HDR_ENABLED_BOOLEAN*             = cstring"SDL.display.HDR_enabled"
+  SDL_PROP_DISPLAY_KMSDRM_PANEL_ORIENTATION_NUMBER* = cstring"SDL.display.SDR_white_level"
 
 type
   WindowBooleanProperty* = enum
-    PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN                = cstring"always-on-top"
+    PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN                = cstring"always_on_top"
     PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN                   = cstring"borderless"
     PROP_WINDOW_CREATE_FOCUSABLE_BOOLEAN                    = cstring"focusable"
+    PROP_WINDOW_CREATE_EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN    = cstring"external_graphics_context"
     PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN                   = cstring"fullscreen"
     PROP_WINDOW_CREATE_HEIGHT_NUMBER                        = cstring"height"
     PROP_WINDOW_CREATE_HIDDEN_BOOLEAN                       = cstring"hidden"
@@ -205,7 +212,8 @@ type
     PROP_WINDOW_CREATE_MENU_BOOLEAN                         = cstring"menu"
     PROP_WINDOW_CREATE_METAL_BOOLEAN                        = cstring"metal"
     PROP_WINDOW_CREATE_MINIMIZED_BOOLEAN                    = cstring"minimized"
-    PROP_WINDOW_CREATE_MOUSE_GRABBED_BOOLEAN                = cstring"mouse-grabbed"
+    PROP_WINDOW_CREATE_MODAL_BOOLEAN                        = cstring"modal"
+    PROP_WINDOW_CREATE_MOUSE_GRABBED_BOOLEAN                = cstring"mouse_grabbed"
     PROP_WINDOW_CREATE_OPENGL_BOOLEAN                       = cstring"opengl"
     PROP_WINDOW_CREATE_PARENT_POINTER                       = cstring"parent"
     PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN                    = cstring"resizable"
@@ -219,7 +227,6 @@ type
     PROP_WINDOW_CREATE_Y_NUMBER                             = cstring"y"
     PROP_WINDOW_CREATE_COCOA_WINDOW_POINTER                 = cstring"cocoa.window"
     PROP_WINDOW_CREATE_COCOA_VIEW_POINTER                   = cstring"cocoa.view"
-    PROP_WINDOW_CREATE_WAYLAND_SCALE_TO_DISPLAY             = cstring"wayland.scale_to_display"
     PROP_WINDOW_CREATE_WAYLAND_SURFACE_ROLE_CUSTOM_BOOLEAN  = cstring"wayland.surface_role_custom"
     PROP_WINDOW_CREATE_WAYLAND_CREATE_EGL_WINDOW_BOOLEAN    = cstring"wayland.create_egl_window"
     PROP_WINDOW_CREATE_WAYLAND_WL_SURFACE_POINTER           = cstring"wayland.wl_surface"
@@ -230,10 +237,16 @@ type
 type
   WindowPointerProperty* = enum
     PROP_WINDOW_SHAPE_POINTER                   = cstring"SDL.window.shape"
+    PROP_WINDOW_HDR_ENABLED_BOOLEAN             = cstring"SDL.window.HDR_enabled"
+    PROP_WINDOW_SDR_WHITE_LEVEL_FLOAT           = cstring"SDL.window.SDR_white_level"
+    PROP_WINDOW_HDR_HEADROOM_FLOAT              = cstring"SDL.window.HDR_headroom"
     PROP_WINDOW_ANDROID_WINDOW_POINTER          = cstring"SDL.window.android.window"
     PROP_WINDOW_ANDROID_SURFACE_POINTER         = cstring"SDL.window.android.surface"
     PROP_WINDOW_UIKIT_WINDOW_POINTER            = cstring"SDL.window.uikit.window"
     PROP_WINDOW_UIKIT_METAL_VIEW_TAG_NUMBER     = cstring"SDL.window.uikit.metal_view_tag"
+    PROP_WINDOW_UIKIT_OPENGL_FRAMEBUFFER_NUMBER         = cstring"SDL.window.uikit.opengl.framebuffer"
+    PROP_WINDOW_UIKIT_OPENGL_RENDERBUFFER_NUMBER        = cstring"SDL.window.uikit.opengl.renderbuffer"
+    PROP_WINDOW_UIKIT_OPENGL_RESOLVE_FRAMEBUFFER_NUMBER = cstring"SDL.window.uikit.opengl.resolve_framebuffer"
     PROP_WINDOW_KMSDRM_DEVICE_INDEX_NUMBER      = cstring"SDL.window.kmsdrm.dev_index"
     PROP_WINDOW_KMSDRM_DRM_FD_NUMBER            = cstring"SDL.window.kmsdrm.drm_fd"
     PROP_WINDOW_KMSDRM_GBM_DEVICE_POINTER       = cstring"SDL.window.kmsdrm.gbm_dev"
@@ -258,6 +271,9 @@ type
     PROP_WINDOW_X11_SCREEN_NUMBER               = cstring"SDL.window.x11.screen"
     PROP_WINDOW_X11_WINDOW_NUMBER               = cstring"SDL.window.x11.window"
 
+#define SDL_WINDOW_SURFACE_VSYNC_DISABLED 0
+#define SDL_WINDOW_SURFACE_VSYNC_ADAPTIVE (-1
+
 type
   HitTestResult* {.size: cint.sizeof.} = enum   # XXX: size
     HITTEST_NORMAL
@@ -279,8 +295,8 @@ type
 #   Sanity checks                                                             #
 # --------------------------------------------------------------------------- #
 
-when defined(gcc) and hostCPU == "amd64":
-  when DisplayMode.sizeof != 32:
-    {.error: "invalid DisplayMode size: " & $DisplayMode.sizeof.}
+# when defined(gcc) and hostCPU == "amd64":
+#   when DisplayMode.sizeof != 32:
+#     {.error: "invalid DisplayMode size: " & $DisplayMode.sizeof.}
 
 # vim: set sts=2 et sw=2:

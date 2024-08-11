@@ -72,11 +72,11 @@ func rect_equals*(a, b: ptr Rect): bool {.inline.} =
 
 func point_in_rect_float*(p: ptr FPoint, r: ptr FRect): bool {.inline.} =
   ##  Return `true` if point resides inside a rectangle.
-  (p.x >= r.x) and (p.x < (r.x + r.w)) and (p.y >= r.y) and (p.y < (r.y + r.h))
+  (p.x >= r.x) and (p.x <= (r.x + r.w)) and (p.y >= r.y) and (p.y <= (r.y + r.h))
 
 func rect_empty_float*(r: ptr FRect): bool {.inline.} =
   ##  Return `true` if the rectangle has no area.
-  (r == nil) or (r.w <= 0.0f) or (r.h <= 0.0f)
+  (r == nil) or (r.w < 0.0f) or (r.h < 0.0f)
 
 func rects_equal_epsilon*(a, b: ptr FRect, epsilon: cfloat): bool {.inline.} =
   (a != nil) and (b != nil) and ((a == b) or

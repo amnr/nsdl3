@@ -17,7 +17,7 @@ const
 proc draw_checkerboard(texture: Texture) =
   var format: PixelFormatEnum
   var access, width, height: int
-  assert QueryTexture(texture, format, access, width, height)
+  # assert QueryTexture(texture, format, access, width, height)
   echo format, ' ', access, ' ', width, " x ", height
 
   var buf = newSeqUninitialized[byte](width * height * uint32.sizeof)
@@ -38,15 +38,6 @@ proc draw_checkerboard(texture: Texture) =
   assert UpdateTexture(texture, buf[0].addr, pitch)
 
 proc main_test() =
-  #var lib = loadSdl2()
-  #defer:
-  #  lib.close
-
-  ## Initialize SDL2.
-  #lib.init SDL_INIT_VIDEO
-  #defer:
-  #  lib.quit
-
   # Create the window screen.
   let win = CreateWindow("Checkerboard", win_width, win_height)
   if win == nil:
@@ -86,7 +77,7 @@ proc main_test() =
       # echo event
       case event.typ
       of EVENT_KEY_DOWN:
-        case event.key.keysym.sym
+        case event.key.key
         of SDLK_ESCAPE, SDLK_q:
           break
         else:

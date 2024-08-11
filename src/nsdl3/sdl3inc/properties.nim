@@ -9,6 +9,9 @@ type
   PropertiesID* = distinct uint32
     ##  Properties ID.
 
+func `==`*(a, b: PropertiesID): bool {.borrow.}
+
+type
   PropertyType* {.size: cint.sizeof.} = enum
     ##  Property type.
     PROPERTY_TYPE_INVALID
@@ -18,6 +21,9 @@ type
     PROPERTY_TYPE_FLOAT
     PROPERTY_TYPE_BOOLEAN
 
+# XXX: typedef void (SDLCALL *SDL_CleanupPropertyCallback)(void *userdata, void *value);
+
+type
   EnumeratePropertiesCallback* = proc (
     userdata  : pointer,
     props     : PropertiesID,

@@ -13,29 +13,29 @@ type
 
   SystemCursor* {.size: cint.sizeof.} = enum
     ##  Cursor types for `create_system_cursor()`.
-    SYSTEM_CURSOR_ARROW
-    SYSTEM_CURSOR_IBEAM
+    SYSTEM_CURSOR_DEFAULT
+    SYSTEM_CURSOR_TEXT
     SYSTEM_CURSOR_WAIT
     SYSTEM_CURSOR_CROSSHAIR
-    SYSTEM_CURSOR_WAITARROW
-    SYSTEM_CURSOR_SIZENWSE
-    SYSTEM_CURSOR_SIZENESW
-    SYSTEM_CURSOR_SIZEWE
-    SYSTEM_CURSOR_SIZENS
-    SYSTEM_CURSOR_SIZEALL
-    SYSTEM_CURSOR_NO
-    SYSTEM_CURSOR_HAND
-    SYSTEM_CURSOR_WINDOW_TOPLEFT
-    SYSTEM_CURSOR_WINDOW_TOP
-    SYSTEM_CURSOR_WINDOW_TOPRIGHT
-    SYSTEM_CURSOR_WINDOW_RIGHT
-    SYSTEM_CURSOR_WINDOW_BOTTOMRIGHT
-    SYSTEM_CURSOR_WINDOW_BOTTOM
-    SYSTEM_CURSOR_WINDOW_BOTTOMLEFT
-    SYSTEM_CURSOR_WINDOW_LEFT
+    SYSTEM_CURSOR_PROGRESS
+    SYSTEM_CURSOR_NWSE_RESIZE
+    SYSTEM_CURSOR_NESW_RESIZE
+    SYSTEM_CURSOR_EW_RESIZE
+    SYSTEM_CURSOR_NS_RESIZE
+    SYSTEM_CURSOR_MOVE
+    SYSTEM_CURSOR_NOT_ALLOWED
+    SYSTEM_CURSOR_POINTER
+    SYSTEM_CURSOR_NW_RESIZE
+    SYSTEM_CURSOR_N_RESIZE
+    SYSTEM_CURSOR_NE_RESIZE
+    SYSTEM_CURSOR_E_RESIZE
+    SYSTEM_CURSOR_SE_RESIZE
+    SYSTEM_CURSOR_S_RESIZE
+    SYSTEM_CURSOR_SW_RESIZE
+    SYSTEM_CURSOR_W_RESIZE
 
 const
-  SDL_NUM_SYSTEM_CURSORS* = SYSTEM_CURSOR_WINDOW_LEFT.int + 1
+  SDL_NUM_SYSTEM_CURSORS* = SystemCursor.high.int + 1
 
 type
   MouseWheelDirection* {.size: cint.sizeof.} = enum
@@ -43,21 +43,19 @@ type
     MOUSEWHEEL_NORMAL
     MOUSEWHEEL_FLIPPED
 
-# Used as a mask when testing buttons in buttonstate.
-#
-# - Button 1:  Left mouse button.
-# - Button 2:  Middle mouse button.
-# - Button 3:  Right mouse button.
+type
+  MouseButtonFlags* = distinct uint32
+    ##  Bitmask of pressed mouse buttons.
 
-func button(x: uint32): uint32 {.compiletime.} =
-  1'u32 shl (x - 1)
+func button(x: MouseButtonFlags): MouseButtonFlags {.compiletime.} =
+  MouseButtonFlags 1'u32 shl (x.uint32 - 1)
 
 const
-  BUTTON_LEFT*    = 1
-  BUTTON_MIDDLE*  = 2
-  BUTTON_RIGHT*   = 3
-  BUTTON_X1*      = 4
-  BUTTON_X2*      = 5
+  BUTTON_LEFT*    = MouseButtonFlags 1
+  BUTTON_MIDDLE*  = MouseButtonFlags 2
+  BUTTON_RIGHT*   = MouseButtonFlags 3
+  BUTTON_X1*      = MouseButtonFlags 4
+  BUTTON_X2*      = MouseButtonFlags 5
   BUTTON_LMASK*   = button BUTTON_LEFT
   BUTTON_MMASK*   = button BUTTON_MIDDLE
   BUTTON_RMASK*   = button BUTTON_RIGHT

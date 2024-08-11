@@ -26,10 +26,20 @@ func ns_to_us*[T: SomeInteger](ns: T): T {.inline.} =
   ns div NS_PER_US
 
 type
-  TimerCallback* = proc (interval: uint32,
-                         param: pointer): uint32 {.cdecl, gcsafe, raises: [].}
-
   TimerID* = distinct uint32
     ##  Timer ID.
+
+type
+  TimerCallback* = proc (
+    userdata  : pointer,
+    timer_id  : TimerID,
+    interval  : uint32
+  ): uint32 {.cdecl, gcsafe, raises: [].}
+
+  NSTimerCallback* = proc (
+    userdata  : pointer,
+    timer_id  : TimerID,
+    interval  : uint32
+  ): uint64 {.cdecl, gcsafe, raises: [].}
 
 # vim: set sts=2 et sw=2:

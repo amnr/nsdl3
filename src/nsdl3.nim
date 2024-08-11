@@ -64,6 +64,8 @@
 when NimMajor >= 2 and defined nimPreviewSlimSystem:
   from std/assertions import assert
 
+import std/options
+
 import nsdl3/config
 import nsdl3/libsdl3
 import nsdl3/utils
@@ -91,7 +93,6 @@ import nsdl3/sdl3inc/render
 # import nsdl3/sdl3inc/rwops
 import nsdl3/sdl3inc/surface
 import nsdl3/sdl3inc/timer
-import nsdl3/sdl3inc/version
 import nsdl3/sdl3inc/video
 
 export open_sdl3_library, close_sdl3_library, last_sdl3_error
@@ -130,37 +131,6 @@ converter to_sdl_bool(b: bool): SdlBool =
   b.SdlBool
 
 proc c_free(mem: pointer) {.header: "<stdlib.h>", importc: "free", nodecl.}
-
-# --------------------------------------------------------------------------- #
-# <SDL3/SDL.h>                                                                #
-# --------------------------------------------------------------------------- #
-
-proc Init*(flags: InitFlags = INIT_VIDEO): bool =
-  ##  Initialize SDL3 library.
-  assert SDL_Init != nil, "did you forget to call open_sdl3_library?"
-  ensure_zero "SDL_Init":
-    SDL_Init flags
-
-proc InitSubSystem*(flags: InitFlags): bool =
-  ##  Initialize SDL3 subsystem.
-  ensure_zero "SDL_InitSubSystem":
-    SDL_InitSubSystem flags
-
-proc Quit*() =
-  ##  Clean up all initialized subsystems.
-  SDL_Quit()
-
-proc QuitSubSystem*(flags: InitFlags) {.inline.} =
-  ##  ```c
-  ##  void SDL_QuitSubSystem(Uint32 flags)
-  ##  ```
-  SDL_QuitSubSystem flags
-
-proc WasInit*(flags: InitFlags = INIT_NONE): InitFlags {.inline.} =
-  ##  ```c
-  ##  Uint32 SDL_WasInit(Uint32 flags)
-  ##  ```
-  SDL_WasInit flags
 
 # --------------------------------------------------------------------------- #
 # <SDL3/SDL_audio.h>                                                          #
@@ -223,13 +193,13 @@ when use_audio:
       return ""
     $name
 
-  proc GetAudioOutputDevices*(): seq[AudioDeviceID] =
+  proc GetAudioPlaybackDevices*(): seq[AudioDeviceID] =
     ##  ```c
-    ##    SDL_AudioDeviceID *SDL_GetAudioOutputDevices(int *count)
+    ##    SDL_AudioDeviceID *SDL_GetAudioPlaybackDevices(int *count)
     ##  ```
     var count: cint = 0
 
-    let devices = SDL_GetAudioOutputDevices count.addr
+    let devices = SDL_GetAudioPlaybackDevices count.addr
     if devices == nil:
       return @[]
 
@@ -452,6 +422,7 @@ proc GetError*(): string {.inline.} =
 # void SDL_FlushEvent(Uint32 type)
 # void SDL_FlushEvents(Uint32 minType, Uint32 maxType)
 # SDL_bool SDL_GetEventFilter(SDL_EventFilter *filter, void **userdata)
+# SDL_Window * SDL_GetWindowFromEvent(const SDL_Event *event)
 # SDL_bool SDL_HasEvent(Uint32 type)
 # SDL_bool SDL_HasEvents(Uint32 minType, Uint32 maxType)
 
@@ -533,9 +504,6 @@ proc WaitEventTimeout*(event: var Event, timeout: int32): bool {.inline.} =
   ##  ```
   SDL_WaitEventTimeout event.addr, timeout
 
-# XXX
-# proc event_state*(typ: EventType, state: bool): bool {.deprecated.} # : "use set_event_enabled instead".}
-
 # --------------------------------------------------------------------------- #
 # <SDL3/SDL_gamepad.h>                                                        #
 # --------------------------------------------------------------------------- #
@@ -588,11 +556,50 @@ when use_hints:
 # <SDL3/SDL_init.h>                                                           #
 # --------------------------------------------------------------------------- #
 
-# int SDL_Init(Uint32 flags)
-# int SDL_InitSubSystem(Uint32 flags)
-# void SDL_Quit(void)
-# void SDL_QuitSubSystem(Uint32 flags)
-# Uint32 SDL_WasInit(Uint32 flags)
+proc GetAppMetadataProperty*(name: AppMetadataProperty): Option[string] =
+  ##  XXX.
+  let prop = SDL_GetAppMetadataProperty name
+  if unlikely prop == nil:
+    return none string
+  return some $prop
+
+proc Init*(flags: InitFlags = INIT_VIDEO): bool =
+  ##  Initialize SDL3 library.
+  assert SDL_Init != nil, "did you forget to call open_sdl3_library?"
+  ensure_zero "SDL_Init":
+    SDL_Init flags
+
+proc InitSubSystem*(flags: InitFlags): bool =
+  ##  Initialize SDL3 subsystem.
+  ensure_zero "SDL_InitSubSystem":
+    SDL_InitSubSystem flags
+
+proc Quit*() =
+  ##  Clean up all initialized subsystems.
+  SDL_Quit()
+
+proc QuitSubSystem*(flags: InitFlags) {.inline.} =
+  ##  ```c
+  ##  void SDL_QuitSubSystem(Uint32 flags)
+  ##  ```
+  SDL_QuitSubSystem flags
+
+proc SetAppMetadata*(appname: string, appversion: string,
+                     appidentifier: string): bool =
+  ##  XXX.
+  ensure_zero "SDL_SetAppMetadata":
+    SDL_SetAppMetadata appname, appversion, appidentifier
+
+proc SetAppMetadataProperty*(name: AppMetadataProperty, value: string): bool =
+  ##  XXX.
+  ensure_zero "SDL_SetAppMetadataProperty":
+    SDL_SetAppMetadataProperty name, value
+
+proc WasInit*(flags: InitFlags = INIT_NONE): InitFlags {.inline.} =
+  ##  ```c
+  ##  Uint32 SDL_WasInit(Uint32 flags)
+  ##  ```
+  SDL_WasInit flags
 
 # --------------------------------------------------------------------------- #
 # <SDL3/SDL_joystick.h>                                                       #
@@ -792,11 +799,11 @@ proc SetLogOutputFunction*(callback: LogOutputFunction,
   ##  ```
   SDL_SetLogOutputFunction callback, userdata
 
-proc LogSetPriority*(category: LogCategory, priority: LogPriority) {.inline.} =
+proc SetLogPriority*(category: LogCategory, priority: LogPriority) {.inline.} =
   ##  ```c
   ##  void SDL_LogSetPriority(int category, SDL_LogPriority priority)
   ##  ```
-  SDL_LogSetPriority category, priority
+  SDL_SetLogPriority category, priority
 
 proc LogVerbose*(category: LogCategory, message: string) {.inline.} =
   ##  ```c
@@ -920,7 +927,7 @@ when use_mouse:
 
   # SDL_Cursor *SDL_GetDefaultCursor(void)
 
-  proc GetGlobalMouseState*(): tuple[x, y: float, state: uint32] =
+  proc GetGlobalMouseState*(): tuple[x, y: float, state: MouseButtonFlags] =
     ##  ```c
     ##  Uint32 SDL_GetGlobalMouseState(float *x, float *y)
     ##  ```
@@ -934,7 +941,7 @@ when use_mouse:
     ##  ```
     SDL_GetMouseFocus()
 
-  proc GetMouseState*(): tuple[x, y: float, state: uint32] =
+  proc GetMouseState*(): tuple[x, y: float, state: MouseButtonFlags] =
     ##  ```c
     ##  Uint32 SDL_GetMouseState(float *x, float *y)
     ##  ```
@@ -1006,16 +1013,38 @@ when use_mouse:
 # <SDL3/SDL_pixels.h>                                                         #
 # --------------------------------------------------------------------------- #
 
-# SDL_Palette *SDL_CreatePalette(int ncolors)
+proc CreatePalette*(ncolors: int): ptr Palette =
+  ##  ```c
+  ##  SDL_Palette *SDL_CreatePalette(int ncolors)
+  ##  ```
+  ensure_not_nil "SDL_CreatePalette":
+    SDL_CreatePalette ncolors.cint
+
 # SDL_PixelFormat * SDL_CreatePixelFormat(Uint32 pixel_format)
-# void SDL_DestroyPalette(SDL_Palette *palette)
+
+proc DestroyPalette*(palette: ptr Palette) =
+  ##  ```c
+  ##  void SDL_DestroyPalette(SDL_Palette *palette)
+  ##  ```
+  SDL_DestroyPalette palette
+
 # void SDL_DestroyPixelFormat(SDL_PixelFormat *format)
 # SDL_bool SDL_GetMasksForPixelFormatEnum(Uint32 format, int *bpp,
 #     Uint32 *Rmask, Uint32 *Gmask, Uint32 *Bmask, Uint32 *Amask)
 
-proc GetPixelFormatEnumForMasks*(bpp: int, rmask: uint32, gmask: uint32,
-                                 bmask: uint32,
-                                 amask: uint32): PixelFormatEnum {.inline.} =
+proc GetPixelFormatDetails*(format: PixelFormatEnum): Option[PixelFormatDetails] =
+  ##  ```c
+  ##  const SDL_PixelFormatDetails * SDL_GetPixelFormatDetails(SDL_PixelFormat format)
+  ##  ```
+  let details = SDL_GetPixelFormatDetails format
+  if details == nil:
+    log_error "SDL_GetPixelFormatDetails failed: " & $SDL_GetError()
+    return none PixelFormatDetails
+  return some details[]
+
+proc GetPixelFormatForMasks*(bpp: int, rmask: uint32, gmask: uint32,
+                             bmask: uint32,
+                             amask: uint32): PixelFormatEnum {.inline.} =
   ##  Convert bits/pixel value and RGBA masks to pixel format.
   ##
   ##  Return `PIXELFORMAT_UNKNOWN` if the conversion failed.
@@ -1025,8 +1054,7 @@ proc GetPixelFormatEnumForMasks*(bpp: int, rmask: uint32, gmask: uint32,
   ##                                        Uint32 Gmask, Uint32 Bmask,
   ##                                        Uint32 Amask)
   ##  ```
-  # XXX: TODO: return pixelformat enum and not uint32.
-  SDL_GetPixelFormatEnumForMasks bpp.cint, rmask, gmask, bmask, amask
+  GetPixelFormatForMasks bpp.cint, rmask, gmask, bmask, amask
 
 # const char* SDL_GetPixelFormatName(Uint32 format)
 # void SDL_GetRGB(Uint32 pixel, const SDL_PixelFormat *format, Uint8 *r,
@@ -1034,24 +1062,25 @@ proc GetPixelFormatEnumForMasks*(bpp: int, rmask: uint32, gmask: uint32,
 # void SDL_GetRGBA(Uint32 pixel, const SDL_PixelFormat *format, Uint8 *r,
 #     Uint8 *g, Uint8 *b, Uint8 *a)
 
-proc MapRGB*(format: PixelFormat, r: byte, g: byte, b: byte): uint32 =
+proc MapRGB*(format: PixelFormatDetails, palette: Palette,
+             r: byte, g: byte, b: byte): uint32 =
   ##  ```c
   ##  Uint32 SDL_MapRGB(const SDL_PixelFormat *format,
   ##                    Uint8 r, Uint8 g, Uint8 b)
   ##  ```
   when NimMajor < 2:
     var format = format
-  SDL_MapRGB format.addr, r, g, b
+  SDL_MapRGB format.addr, palette.addr, r, g, b
 
-proc MapRGBA*(format: PixelFormat, r: byte, g: byte, b: byte,
-              a: byte): uint32 =
+proc MapRGBA*(format: PixelFormatDetails, palette: Palette,
+              r: byte, g: byte, b: byte, a: byte): uint32 =
   ##  ```c
   ##  Uint32 SDL_MapRGBA(const SDL_PixelFormat *format,
   ##                     Uint8 r, Uint8 g, Uint8 b, Uint8 a)
   ##  ```
   when NimMajor < 2:
     var format = format
-  SDL_MapRGBA format.addr, r, g, b, a
+  SDL_MapRGBA format.addr, palette.addr, r, g, b, a
 
 # int SDL_SetPaletteColors(SDL_Palette *palette, const SDL_Color *colors,
 #     int firstcolor, int ncolors)
@@ -1061,9 +1090,21 @@ proc MapRGBA*(format: PixelFormat, r: byte, g: byte, b: byte,
 # <SDL3/SDL_properties.h>                                                     #
 # --------------------------------------------------------------------------- #
 
+proc CreateProperties*(): PropertiesID =
+  ##  ```c
+  ##  SDL_PropertiesID SDL_CreateProperties(void)
+  ##  ```
+  result = SDL_CreateProperties()
+  if result == PropertiesID 0:
+    log_error "SDL_CreateProperties failed: " & $SDL_GetError()
+
+proc DestroyProperties*(props: PropertiesID) {.inline.} =
+  ##  ```c
+  ##  void SDL_DestroyProperties(SDL_PropertiesID props)
+  ##  ```
+  SDL_DestroyProperties props
+
 # int SDL_ClearProperty(SDL_PropertiesID props, const char *name)
-# SDL_PropertiesID SDL_CreateProperties(void)
-# void SDL_DestroyProperties(SDL_PropertiesID props)
 # int SDL_EnumerateProperties(SDL_PropertiesID props, SDL_EnumeratePropertiesCallback callback, void *userdata)
 # SDL_bool SDL_GetBooleanProperty(SDL_PropertiesID props, const char *name, SDL_bool default_value)
 # float SDL_GetFloatProperty(SDL_PropertiesID props, const char *name, float default_value)
@@ -1075,12 +1116,26 @@ proc MapRGBA*(format: PixelFormat, r: byte, g: byte, b: byte,
 # int SDL_LockProperties(SDL_PropertiesID props)
 # int SDL_SetBooleanProperty(SDL_PropertiesID props, const char *name, SDL_bool value)
 # int SDL_SetFloatProperty(SDL_PropertiesID props, const char *name, float value)
-# int SDL_SetNumberProperty(SDL_PropertiesID props, const char *name, Sint64 value)
+
+proc SetNumberProperty*(props: PropertiesID, name: cstring, value: int64): bool =
+  ##  ```c
+  ##  int SDL_SetNumberProperty(SDL_PropertiesID props, const char *name, Sint64 value)
+  ##  ```
+  ensure_zero "SDL_SetNumberProperty":
+    SDL_SetNumberProperty props, name, value
+
 # int SetProperty(SDL_PropertiesID props, const char *name, void *value)
 # int SDL_SetPropertyWithCleanup(SDL_PropertiesID props, const char *name,
 #     void *value, void (*cleanup)(void *userdata, void *value),
 #     void *userdata)
-# int SDL_SetStringProperty(SDL_PropertiesID props, const char *name, const char *value)
+
+proc SetStringProperty*(props: PropertiesID, name: cstring, value: string): bool =
+  ##  ```c
+  ##  int SDL_SetStringProperty(SDL_PropertiesID props, const char *name, const char *value)
+  ##  ```
+  ensure_zero "SDL_SetStringProperty":
+    SDL_SetStringProperty props, name, value
+
 # void SDL_UnlockProperties(SDL_PropertiesID props)
 
 # --------------------------------------------------------------------------- #
@@ -1099,6 +1154,14 @@ proc MapRGBA*(format: PixelFormat, r: byte, g: byte, b: byte,
 #     SDL_Rect *result)
 # SDL_bool SDL_GetRectIntersectionFloat(const SDL_FRect *A,
 #     const SDL_FRect *B, SDL_FRect *result)
+
+func RectToFRect*(rect: Rect, frect: var FRect) {.inline.} =
+  ##  Convert an `Rect` to `FRect`.
+  frect.x = cfloat rect.x
+  frect.y = cfloat rect.y
+  frect.w = cfloat rect.w
+  frect.h = cfloat rect.h
+
 # int SDL_GetRectUnion(const SDL_Rect *A, const SDL_Rect *B, SDL_Rect *result)
 # int SDL_GetRectUnionFloat(const SDL_FRect *A, const SDL_FRect *B,
 #     SDL_FRect *result)
@@ -1112,23 +1175,21 @@ proc MapRGBA*(format: PixelFormat, r: byte, g: byte, b: byte,
 # int SDL_ConvertEventToRenderCoordinates(SDL_Renderer *renderer,
 #     SDL_Event *event)
 
-proc CreateRenderer*(window: Window, name: string,
-                     flags = RendererFlags 0): Renderer =
+proc CreateRenderer*(window: Window): Renderer =
   ##  ```c
   ##  SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, const char *name,
   ##                                   Uint32 flags)
   ##  ```
   ensure_not_nil "SDL_CreateRenderer":
-    SDL_CreateRenderer window, name.cstring, flags
+    SDL_CreateRenderer window, nil
 
-proc CreateRenderer*(window: Window,
-                     flags = RendererFlags 0): Renderer =
+proc CreateRenderer*(window: Window, name: string): Renderer =
   ##  ```c
   ##  SDL_Renderer *SDL_CreateRenderer(SDL_Window *window, const char *name,
   ##                                   Uint32 flags)
   ##  ```
   ensure_not_nil "SDL_CreateRenderer":
-    SDL_CreateRenderer window, nil, flags
+    SDL_CreateRenderer window, name.cstring
 
 proc CreateRendererWithProperties*(props: PropertiesID): Renderer =
   ##  Create a 2D rendering context for a window, with the specified
@@ -1164,16 +1225,16 @@ proc CreateTextureWithProperties*(renderer: Renderer,
   ensure_not_nil "SDL_CreateTextureWithProperties":
     SDL_CreateTextureWithProperties renderer, props
 
-proc CreateWindowAndRenderer*(width: int, height: int,
+proc CreateWindowAndRenderer*(title: string, width: int, height: int,
                               window_flags: WindowFlags = WindowFlags 0): tuple[window: Window, renderer: Renderer] =
   ##  Create a window and default renderer.
   ##
   ##  `SDL_CreateWindowAndRenderer`
   var out_window    : Window = nil
   var out_renderer  : Renderer = nil
-  if not SDL_CreateWindowAndRenderer(width.cint, height.cint,
-                                             window_flags, out_window.addr,
-                                             out_renderer.addr) != 0:
+  if not SDL_CreateWindowAndRenderer(title, width.cint, height.cint,
+                                     window_flags, out_window.addr,
+                                     out_renderer.addr) != 0:
     echo "SDL_CreateWindowAndRenderer failed: ", GetError()   # XXX: echo
     # XXX: TODO: check whether this function writes anythin on error.
     if out_renderer != nil:
@@ -1194,6 +1255,8 @@ proc DestroyTexture*(texture: Texture) {.inline.} =
   ##
   ##  `SDL_DestroyTexture`
   SDL_DestroyTexture texture
+
+# int SDL_FlushRenderer(SDL_Renderer *renderer)
 
 # int SDL_GL_BindTexture(SDL_Texture *texture, float *texw, float *texh)
 # int SDL_GL_UnbindTexture(SDL_Texture *texture)
@@ -1225,18 +1288,97 @@ proc GetRenderer*(window: Window): Renderer =
   ensure_not_nil "SDL_GetRenderer":
     SDL_GetRenderer window
 
-# int SDL_GetRendererInfo(SDL_Renderer *renderer, SDL_RendererInfo *info)
 # int SDL_GetTextureAlphaMod(SDL_Texture *texture, Uint8 *alpha)
 # int SDL_GetTextureBlendMode(SDL_Texture *texture, SDL_BlendMode *blendMode)
 # int SDL_GetTextureColorMod(SDL_Texture *texture,
 #     Uint8 *r, Uint8 *g, Uint8 *b)
-# SDL_PropertiesID SDL_GetTextureProperties(SDL_Texture *texture)
-# int SDL_GetTextureScaleMode(SDL_Texture *texture, SDL_ScaleMode *scaleMode)
-# int SDL_LockTexture(SDL_Texture *texture, const SDL_Rect *rect,
-#     void **pixels, int *pitch)
-# int SDL_LockTextureToSurface(SDL_Texture *texture, const SDL_Rect *rect,
-#     SDL_Surface **surface)
 
+proc GetTextureProperties*(texture: Texture): PropertiesID =
+  ##  ```c
+  ##  SDL_PropertiesID SDL_GetTextureProperties(SDL_Texture *texture)
+  ##  ```
+  result = SDL_GetTextureProperties texture
+  if unlikely result == PropertiesID 0:
+    log_error "SDL_GetTextureProperties failed: " & $SDL_GetError()
+
+# int SDL_GetTextureScaleMode(SDL_Texture *texture, SDL_ScaleMode *scaleMode)
+
+proc LockTexture*(texture: Texture, pixels: var ptr UncheckedArray[byte],
+                  pitch: var int): bool =
+  ##  ```c
+  ##  int SDL_LockTexture(SDL_Texture *texture, const SDL_Rect *rect,
+  ##                      void **pixels, int *pitch)
+  ##  ```
+  var raw_pixels: pointer = nil
+  var raw_pitch: cint = 0
+  if SDL_LockTexture(texture, nil, raw_pixels.addr, raw_pitch.addr) != 0:
+    log_error "SDL_LockTexture failed: " & $SDL_GetError()
+    return false
+  pixels  = cast[ptr UncheckedArray[byte]](raw_pixels)
+  pitch   = raw_pitch
+  true
+
+proc LockTexture*(texture: Texture, pixels: var ptr UncheckedArray[uint16],
+                  pitch: var int): bool =
+  ##  ```c
+  ##  int SDL_LockTexture(SDL_Texture *texture, const SDL_Rect *rect,
+  ##                      void **pixels, int *pitch)
+  ##  ```
+  var raw_pixels: pointer = nil
+  var raw_pitch: cint = 0
+  if SDL_LockTexture(texture, nil, raw_pixels.addr, raw_pitch.addr) != 0:
+    log_error "SDL_LockTexture failed: " & $SDL_GetError()
+    return false
+  pixels  = cast[ptr UncheckedArray[uint16]](raw_pixels)
+  pitch   = raw_pitch
+  true
+
+proc LockTexture*(texture: Texture, pixels: var ptr UncheckedArray[uint32],
+                  pitch: var int): bool =
+  ##  ```c
+  ##  int SDL_LockTexture(SDL_Texture *texture, const SDL_Rect *rect,
+  ##                      void **pixels, int *pitch)
+  ##  ```
+  var raw_pixels: pointer = nil
+  var raw_pitch: cint = 0
+  if SDL_LockTexture(texture, nil, raw_pixels.addr, raw_pitch.addr) != 0:
+    log_error "SDL_LockTexture failed: " & $SDL_GetError()
+    return false
+  pixels  = cast[ptr UncheckedArray[uint32]](raw_pixels)
+  pitch   = raw_pitch
+  true
+
+proc LockTexture*(texture: Texture, rect: Rect, pixels: var UncheckedArray[byte],
+                  pitch: var int): bool =
+  ##  ```c
+  ##  int SDL_LockTexture(SDL_Texture *texture, const SDL_Rect *rect,
+  ##                      void **pixels, int *pitch)
+  ##  ```
+  var raw_pitch: cint = 0
+  if SDL_LockTexture(texture, rect.addr, cast[ptr pointer](pixels.addr),
+                     raw_pitch.addr) != 0:
+    log_error "SDL_LockTexture failed: " & $SDL_GetError()
+    return false
+  pitch = raw_pitch
+
+proc LockTextureToSurface*(texture: Texture, surface: var SurfacePtr): bool =
+  ##  ```c
+  ##  int SDL_LockTextureToSurface(SDL_Texture *texture, const SDL_Rect *rect,
+  ##                               SDL_Surface **surface)
+  ##  ```
+  ensure_zero "SDL_LockTextureToSurface":
+    SDL_LockTextureToSurface texture, nil, surface.addr
+
+proc LockTextureToSurface*(texture: Texture, rect: Rect,
+                           surface: var SurfacePtr): bool =
+  ##  ```c
+  ##  int SDL_LockTextureToSurface(SDL_Texture *texture, const SDL_Rect *rect,
+  ##                               SDL_Surface **surface)
+  ##  ```
+  ensure_zero "SDL_LockTextureToSurface":
+    SDL_LockTextureToSurface texture, rect.addr, surface.addr
+
+#[
 proc QueryTexture*(texture: Texture, format: var PixelFormatEnum,
                    access: var int, w: var int, h: var int): bool =
   ##  ```c
@@ -1252,6 +1394,7 @@ proc QueryTexture*(texture: Texture, format: var PixelFormatEnum,
   w = outw
   h = outh
   true
+]#
 
 proc RenderClear*(renderer: Renderer): bool =
   ##  ```c
@@ -1307,7 +1450,6 @@ proc RenderFillRect*(renderer: Renderer, x: float, y: float,
 
 # int SDL_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects,
 #     int count)
-# int SDL_RenderFlush(SDL_Renderer *renderer)
 
 proc RenderGeometry*(renderer: Renderer, texture: Texture,
                      vertices: openArray[Vertex]): bool =
@@ -1557,7 +1699,12 @@ proc SetTextureScaleMode*(texture: Texture, scale_mode: ScaleMode): bool =
   ensure_zero "SDL_SetTextureScaleMode":
     SDL_SetTextureScaleMode texture, scale_mode
 
-# void SDL_UnlockTexture(SDL_Texture *texture)
+proc UnlockTexture*(texture: Texture) =
+  ##  ```c
+  ##  void SDL_UnlockTexture(SDL_Texture *texture)
+  ##  ```
+  SDL_UnlockTexture texture
+
 # int SDL_UpdateNVTexture(SDL_Texture *texture, const SDL_Rect *rect,
 #     const Uint8 *Yplane, int Ypitch, const Uint8 *UVplane, int UVpitch)
 
@@ -1639,14 +1786,14 @@ proc UpdateTexture*(texture: Texture, pixels: pointer, pitch: int): bool =
 # SDL_Surface *SDL_ConvertSurfaceFormat(SDL_Surface *surface, Uint32 pixel_format)
 # SDL_Surface *SDL_CreateSurface (int width, int height, Uint32 format)
 
-proc CreateSurfaceFrom*(pixels: pointer, width, height: int, pitch: int,
-                        format: PixelFormatEnum): SurfacePtr =
+proc CreateSurfaceFrom*(width, height: int, format: PixelFormatEnum,
+                        pixels: pointer, pitch: int): SurfacePtr =
   ##  ```c
   ##  SDL_Surface *SDL_CreateSurfaceFrom(void *pixels, int width, int height,
   ##                                    int pitch, Uint32 format)
   ##  ```
   ensure_not_nil "SDL_CreateSurfaceFrom":
-    SDL_CreateSurfaceFrom pixels, width.cint, height.cint, pitch.cint, format
+    SDL_CreateSurfaceFrom width.cint, height.cint, format, pixels, pitch.cint
 
 proc DestroySurface*(surface: SurfacePtr) {.inline.} =
   ##  ```c
@@ -1693,7 +1840,13 @@ proc LoadBMP*(file: string): SurfacePtr =
 #  ##  ```
 #  SDL_LoadBMP_RW src, freesrc.cint
 
-# int SDL_LockSurface(SDL_Surface *surface)
+proc LockSurface*(surface: SurfacePtr): bool =
+  ##  ```c
+  ##  int SDL_LockSurface(SDL_Surface *surface)
+  ##  ```
+  ensure_zero "SDL_LockSurface":
+    SDL_LockSurface surface
+
 # int SDL_PremultiplyAlpha(int width, int height, Uint32 src_format,
 #     const void *src, int src_pitch, Uint32 dst_format, void *dst,
 #     int dst_pitch)
@@ -1717,17 +1870,36 @@ proc SetSurfaceColorKey*(surface: SurfacePtr, flag: bool, key: uint32): bool =
   ##  int SDL_SetSurfaceColorKey(SDL_Surface *surface, int flag, Uint32 key)
   ##  ```
   ensure_zero "SDL_SetSurfaceColorKey":
-    SDL_SetSurfaceColorKey surface, flag.cint, key
+    SDL_SetSurfaceColorKey surface, flag, key
 
 # int SDL_SetSurfaceColorMod(SDL_Surface *surface, Uint8 r, Uint8 g, Uint8 b)
 # int SDL_SetSurfacePalette(SDL_Surface *surface, SDL_Palette *palette)
-# int SDL_SetSurfaceRLE(SDL_Surface *surface, int flag)
+
+proc SetSurfaceRLE*(surface: SurfacePtr, flag: bool): bool =
+  ##  XXX.
+  ensure_zero "SDL_SetSurfaceRLE":
+    SDL_SetSurfaceRLE surface, flag
+
 # void SDL_SetYUVConversionMode(SDL_YUV_CONVERSION_MODE mode)
 # int SDL_SoftStretch(SDL_Surface *src, const SDL_Rect *srcrect,
 #     SDL_Surface *dst, const SDL_Rect *dstrect, SDL_ScaleMode scaleMode)
 # SDL_bool SDL_SurfaceHasColorKey(SDL_Surface *surface)
 # SDL_bool SDL_SurfaceHasRLE(SDL_Surface *surface)
-# void SDL_UnlockSurface(SDL_Surface *surface)
+
+proc UnlockSurface*(surface: SurfacePtr) =
+  ##  ```c
+  ##  void SDL_UnlockSurface(SDL_Surface *surface)
+  ##  ```
+  SDL_UnlockSurface surface
+
+proc WriteSurfacePixel*(surface: SurfacePtr, x: int, y: int,
+                        r: byte, g: byte, b: byte, a: byte): bool =
+  ##  ```c
+  ##  int SDL_WriteSurfacePixel(SDL_Surface *surface, int x, int y,
+  ##                            Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+  ##  ```
+  ensure_zero "SDL_WriteSurfacePixel":
+    SDL_WriteSurfacePixel surface, x.cint, y.cint, r, g, b, a
 
 # --------------------------------------------------------------------------- #
 # <SDL3/SDL_syswm.h>                                                          #
@@ -1808,13 +1980,11 @@ proc GetRevision*(): string =
   ##  ```
   $SDL_GetRevision()
 
-proc GetVersion*(): tuple[major, minor, patch: int] =
+proc GetVersion*(): int =
   ##  ```c
-  ##  int SDL_GetVersion(SDL_version *ver)
+  ##  int SDL_GetVersion()
   ##  ```
-  var ver = Version(major: 0, minor: 0, patch: 0)
-  SDL_GetVersion ver.addr
-  (ver.major.int, ver.minor.int, ver.patch.int)
+  SDL_GetVersion()
 
 # --------------------------------------------------------------------------- #
 # <SDL3/SDL_video.h>                                                          #
@@ -2532,8 +2702,9 @@ proc CreateRGBSurfaceFrom*(pixels: pointer, width: int, height: int,
                            gmask: uint32, bmask: uint32, amask: uint32): SurfacePtr {.deprecated: "use CreateSurfaceFrom", inline.} =
   ##  ```c
   ##  ```
-  CreateSurfaceFrom pixels, width.cint, height.cint, pitch.cint,
-                    GetPixelFormatEnumForMasks(depth, rmask, gmask, bmask, amask)
+  CreateSurfaceFrom width.cint, height.cint,
+                    GetPixelFormatForMasks(depth, rmask, gmask, bmask, amask),
+                    pixels, pitch.cint
 
 
 proc FreeSurface*(surface: SurfacePtr) {.deprecated: "use DestroySurface instead", inline.} =

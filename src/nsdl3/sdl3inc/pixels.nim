@@ -70,93 +70,74 @@ type
 # Note:
 # SDL_ISPIXELFORMAT macros moved after PixelFormatEnum.
 
-func define_pixelfourcc(a, b, c, d: byte or char): uint32 {.compiletime.} =
-  # Defined in SDL_stdinc.h.
-  a.uint32 or (b.uint32 shl 8) or (c.uint32 shl 16) or (d.uint32 shl 24)
-
-func define_pixelformat(typ: PixelType,
-                        order: ArrayOrder or BitmapOrder or PackedOrder or byte,
-                        layout: PackedLayout or byte,
-                        bits, bytes: byte): uint32 {.compiletime.} =
-  (1'u32 shl 28) or (typ.uint32 shl 24) or (order.uint32 shl 20) or
-  (layout.uint32 shl 16) or (bits.uint32 shl 8) or bytes
-
 type
   PixelFormatEnum* {.size: uint32.sizeof.} = enum
     ##  Pixel format.
-    PIXELFORMAT_UNKNOWN
-    PIXELFORMAT_INDEX1LSB   = define_pixelformat(PIXELTYPE_INDEX1, BITMAPORDER_4321, 0, 1, 0)
-    PIXELFORMAT_INDEX1MSB   = define_pixelformat(PIXELTYPE_INDEX1, BITMAPORDER_1234, 0, 1, 0)
-    PIXELFORMAT_INDEX4LSB   = define_pixelformat(PIXELTYPE_INDEX4, BITMAPORDER_4321, 0, 4, 0)
-    PIXELFORMAT_INDEX4MSB   = define_pixelformat(PIXELTYPE_INDEX4, BITMAPORDER_1234, 0, 4, 0)
-    PIXELFORMAT_INDEX8      = define_pixelformat(PIXELTYPE_INDEX8, 0, 0, 8, 1)
-    PIXELFORMAT_RGB332      = define_pixelformat(PIXELTYPE_PACKED8, PACKEDORDER_XRGB, PACKEDLAYOUT_332, 8, 1)
-    PIXELFORMAT_XRGB4444    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_XRGB, PACKEDLAYOUT_4444, 12, 2)
-    PIXELFORMAT_XRGB1555    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_XRGB, PACKEDLAYOUT_1555, 15, 2)
-    PIXELFORMAT_RGB565      = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_XRGB, PACKEDLAYOUT_565, 16, 2)
-    PIXELFORMAT_ARGB4444    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_ARGB, PACKEDLAYOUT_4444, 16, 2)
-    PIXELFORMAT_ARGB1555    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_ARGB, PACKEDLAYOUT_1555, 16, 2)
-    PIXELFORMAT_RGBA4444    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_RGBA, PACKEDLAYOUT_4444, 16, 2)
-    PIXELFORMAT_RGBA5551    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_RGBA, PACKEDLAYOUT_5551, 16, 2)
-    PIXELFORMAT_XBGR4444    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_XBGR, PACKEDLAYOUT_4444, 12, 2)
-    PIXELFORMAT_XBGR1555    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_XBGR, PACKEDLAYOUT_1555, 15, 2)
-    PIXELFORMAT_BGR565      = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_XBGR, PACKEDLAYOUT_565, 16, 2)
-    PIXELFORMAT_ABGR4444    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_ABGR, PACKEDLAYOUT_4444, 16, 2)
-    PIXELFORMAT_ABGR1555    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_ABGR, PACKEDLAYOUT_1555, 16, 2)
-    PIXELFORMAT_BGRA4444    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_BGRA, PACKEDLAYOUT_4444, 16, 2)
-    PIXELFORMAT_BGRA5551    = define_pixelformat(PIXELTYPE_PACKED16, PACKEDORDER_BGRA, PACKEDLAYOUT_5551, 16, 2)
-    PIXELFORMAT_XRGB8888    = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_XRGB, PACKEDLAYOUT_8888, 24, 4)
-    PIXELFORMAT_XRGB2101010 = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_XRGB, PACKEDLAYOUT_2101010, 32, 4)
-    PIXELFORMAT_RGBX8888    = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_RGBX, PACKEDLAYOUT_8888, 24, 4)
-    PIXELFORMAT_ARGB8888    = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_ARGB, PACKEDLAYOUT_8888, 32, 4)
-    PIXELFORMAT_ARGB2101010 = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_ARGB, PACKEDLAYOUT_2101010, 32, 4)
-    PIXELFORMAT_RGBA8888    = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_RGBA, PACKEDLAYOUT_8888, 32, 4)
-    PIXELFORMAT_XBGR8888    = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_XBGR, PACKEDLAYOUT_8888, 24, 4)
-    PIXELFORMAT_XBGR2101010 = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_XBGR, PACKEDLAYOUT_2101010, 32, 4)
-    PIXELFORMAT_BGRX8888    = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_BGRX, PACKEDLAYOUT_8888, 24, 4)
-    PIXELFORMAT_ABGR8888    = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_ABGR, PACKEDLAYOUT_8888, 32, 4)
-    PIXELFORMAT_ABGR2101010 = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_ABGR, PACKEDLAYOUT_2101010, 32, 4)
-    PIXELFORMAT_BGRA8888    = define_pixelformat(PIXELTYPE_PACKED32, PACKEDORDER_BGRA, PACKEDLAYOUT_8888, 32, 4)
-    PIXELFORMAT_RGB24       = define_pixelformat(PIXELTYPE_ARRAYU8, ARRAYORDER_RGB, 0, 24, 3)
-    PIXELFORMAT_BGR24       = define_pixelformat(PIXELTYPE_ARRAYU8, ARRAYORDER_BGR, 0, 24, 3)
-    PIXELFORMAT_RGB48       = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_RGB, 0, 48, 6)
-    PIXELFORMAT_RGBA64      = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_RGBA, 0, 64, 8)
-    PIXELFORMAT_ARGB64      = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_ARGB, 0, 64, 8)
-    PIXELFORMAT_BGR48       = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_BGR, 0, 48, 6)
-    PIXELFORMAT_BGRA64      = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_BGRA, 0, 64, 8)
-    PIXELFORMAT_ABGR64      = define_pixelformat(PIXELTYPE_ARRAYU16, ARRAYORDER_ABGR, 0, 64, 8)
-    PIXELFORMAT_RGB48_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_RGB, 0, 48, 6)
-    PIXELFORMAT_RGBA64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_RGBA, 0, 64, 8)
-    PIXELFORMAT_ARGB64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_ARGB, 0, 64, 8)
-    PIXELFORMAT_BGR48_FLOAT   = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_BGR, 0, 48, 6)
-    PIXELFORMAT_BGRA64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_BGRA, 0, 64, 8)
-    PIXELFORMAT_ABGR64_FLOAT  = define_pixelformat(PIXELTYPE_ARRAYF16, ARRAYORDER_ABGR, 0, 64, 8)
-    PIXELFORMAT_RGB96_FLOAT   = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_RGB, 0, 96, 12)
-    PIXELFORMAT_RGBA128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_RGBA, 0, 128, 16)
-    PIXELFORMAT_ARGB128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_ARGB, 0, 128, 16)
-    PIXELFORMAT_BGR96_FLOAT   = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_BGR, 0, 96, 12)
-    PIXELFORMAT_BGRA128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_BGRA, 0, 128, 16)
-    PIXELFORMAT_ABGR128_FLOAT = define_pixelformat(PIXELTYPE_ARRAYF32, ARRAYORDER_ABGR, 0, 128, 16)
+    PIXELFORMAT_UNKNOWN       = 0
+    PIXELFORMAT_INDEX1LSB     = 0x11100100
+    PIXELFORMAT_INDEX1MSB     = 0x11200100
+    PIXELFORMAT_INDEX4LSB     = 0x12100400
+    PIXELFORMAT_INDEX4MSB     = 0x12200400
+    PIXELFORMAT_INDEX8        = 0x13000801
+    PIXELFORMAT_RGB332        = 0x14110801
+    PIXELFORMAT_XRGB4444      = 0x15120c02
+    PIXELFORMAT_XRGB1555      = 0x15130f02
+    PIXELFORMAT_RGB565        = 0x15151002
+    PIXELFORMAT_ARGB4444      = 0x15321002
+    PIXELFORMAT_ARGB1555      = 0x15331002
+    PIXELFORMAT_RGBA4444      = 0x15421002
+    PIXELFORMAT_RGBA5551      = 0x15441002
+    PIXELFORMAT_XBGR4444      = 0x15520c02
+    PIXELFORMAT_XBGR1555      = 0x15530f02
+    PIXELFORMAT_BGR565        = 0x15551002
+    PIXELFORMAT_ABGR4444      = 0x15721002
+    PIXELFORMAT_ABGR1555      = 0x15731002
+    PIXELFORMAT_BGRA4444      = 0x15821002
+    PIXELFORMAT_BGRA5551      = 0x15841002
+    PIXELFORMAT_XRGB8888      = 0x16161804
+    PIXELFORMAT_XRGB2101010   = 0x16172004
+    PIXELFORMAT_RGBX8888      = 0x16261804
+    PIXELFORMAT_ARGB8888      = 0x16362004
+    PIXELFORMAT_ARGB2101010   = 0x16372004
+    PIXELFORMAT_RGBA8888      = 0x16462004
+    PIXELFORMAT_XBGR8888      = 0x16561804
+    PIXELFORMAT_XBGR2101010   = 0x16572004
+    PIXELFORMAT_BGRX8888      = 0x16661804
+    PIXELFORMAT_ABGR8888      = 0x16762004
+    PIXELFORMAT_ABGR2101010   = 0x16772004
+    PIXELFORMAT_BGRA8888      = 0x16862004
+    PIXELFORMAT_RGB24         = 0x17101803
+    PIXELFORMAT_BGR24         = 0x17401803
+    PIXELFORMAT_RGB48         = 0x18103006
+    PIXELFORMAT_RGBA64        = 0x18204008
+    PIXELFORMAT_ARGB64        = 0x18304008
+    PIXELFORMAT_BGR48         = 0x18403006
+    PIXELFORMAT_BGRA64        = 0x18504008
+    PIXELFORMAT_ABGR64        = 0x18604008
+    PIXELFORMAT_RGB48_FLOAT   = 0x1a103006
+    PIXELFORMAT_RGBA64_FLOAT  = 0x1a204008
+    PIXELFORMAT_ARGB64_FLOAT  = 0x1a304008
+    PIXELFORMAT_BGR48_FLOAT   = 0x1a403006
+    PIXELFORMAT_BGRA64_FLOAT  = 0x1a504008
+    PIXELFORMAT_ABGR64_FLOAT  = 0x1a604008
+    PIXELFORMAT_RGB96_FLOAT   = 0x1b10600c
+    PIXELFORMAT_RGBA128_FLOAT = 0x1b208010
+    PIXELFORMAT_ARGB128_FLOAT = 0x1b308010
+    PIXELFORMAT_BGR96_FLOAT   = 0x1b40600c
+    PIXELFORMAT_BGRA128_FLOAT = 0x1b508010
+    PIXELFORMAT_ABGR128_FLOAT = 0x1b608010
+    PIXELFORMAT_INDEX2LSB     = 0x1c100200
+    PIXELFORMAT_INDEX2MSB     = 0x1c200200
 
-    PIXELFORMAT_INDEX2LSB     = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_4321, 0, 2, 0)
-    PIXELFORMAT_INDEX2MSB     = define_pixelformat(PIXELTYPE_INDEX2, BITMAPORDER_1234, 0, 2, 0)
-
-    PIXELFORMAT_EXTERNAL_OES  = define_pixelfourcc('O', 'E', 'S', ' ')
-    PIXELFORMAT_P010          = define_pixelfourcc('P', '0', '1', '0')
-    PIXELFORMAT_NV21          = define_pixelfourcc('N', 'V', '2', '1')
-    PIXELFORMAT_NV12          = define_pixelfourcc('N', 'V', '1', '2')
-    PIXELFORMAT_YV12          = define_pixelfourcc('Y', 'V', '1', '2')
-    PIXELFORMAT_YUY2          = define_pixelfourcc('Y', 'U', 'Y', '2')
-    # PIXELFORMAT_P016          = define_pixelfourcc('P', '0', '1', '6')
-    PIXELFORMAT_YVYU          = define_pixelfourcc('Y', 'V', 'Y', 'U')
-    PIXELFORMAT_IYUV          = define_pixelfourcc('I', 'Y', 'U', 'V')
-    PIXELFORMAT_UYVY          = define_pixelfourcc('U', 'Y', 'V', 'Y')
-
-const
-  PIXELFORMAT_RGB444* = PIXELFORMAT_XRGB4444
-  PIXELFORMAT_BGR444* = PIXELFORMAT_XBGR4444
-  PIXELFORMAT_RGB555* = PIXELFORMAT_XRGB1555
-  PIXELFORMAT_BGR555* = PIXELFORMAT_XBGR1555
+    PIXELFORMAT_EXTERNAL_OES  = 0x2053454f
+    PIXELFORMAT_P010          = 0x30313050
+    PIXELFORMAT_NV21          = 0x3132564e
+    PIXELFORMAT_NV12          = 0x3231564e
+    PIXELFORMAT_YV12          = 0x32315659
+    PIXELFORMAT_YUY2          = 0x32595559
+    PIXELFORMAT_YVYU          = 0x55595659
+    PIXELFORMAT_IYUV          = 0x56555949
+    PIXELFORMAT_UYVY          = 0x59565955
 
 when cpuEndian == bigEndian:
   const
@@ -191,11 +172,11 @@ func pixel_order(format: PixelFormatEnum): uint32 {.inline.} =
 func pixel_layout(format: PixelFormatEnum): uint32 {.inline.} =
   (format.uint32 shr 16) and 0x0f
 
-func bits_per_pixel*(format: PixelFormatEnum): int {.inline.} =
-  int format.uint32 shr 8 and 0xff
-
 func is_fourcc(format: PixelFormatEnum): bool {.inline.} =
   (format != PIXELFORMAT_UNKNOWN) and (format.pixel_flag != 1)
+
+func bits_per_pixel*(format: PixelFormatEnum): int {.inline.} =
+  int (if format.is_fourcc: 0'u32 else: (format.uint32 shr 8) and 0xff)
 
 func bytes_per_pixel*(format: PixelFormatEnum): int {.inline.} =
   if format.is_fourcc:
@@ -359,70 +340,17 @@ func define_colorspace(typ: ColorType, range: ColorRange,
 type
   Colorspace* {.size: cint.sizeof.} = enum
     ##  The color space.
-    COLORSPACE_UNKNOWN
-    COLORSPACE_SCRGB          = define_colorspace(COLOR_TYPE_RGB,
-                                  COLOR_RANGE_FULL,
-                                  COLOR_PRIMARIES_BT709,
-                                  TRANSFER_CHARACTERISTICS_LINEAR,
-                                  MATRIX_COEFFICIENTS_UNSPECIFIED,
-                                  CHROMA_LOCATION_NONE)
-    COLORSPACE_SRGB           = define_colorspace(COLOR_TYPE_RGB,
-                                  COLOR_RANGE_FULL,
-                                  COLOR_PRIMARIES_BT709,
-                                  TRANSFER_CHARACTERISTICS_SRGB,
-                                  MATRIX_COEFFICIENTS_UNSPECIFIED,
-                                  CHROMA_LOCATION_NONE)
-    COLORSPACE_HDR10          = define_colorspace(COLOR_TYPE_RGB,
-                                  COLOR_RANGE_FULL,
-                                  COLOR_PRIMARIES_BT2020,
-                                  TRANSFER_CHARACTERISTICS_PQ,
-                                  MATRIX_COEFFICIENTS_UNSPECIFIED,
-                                  CHROMA_LOCATION_NONE)
-
-    COLORSPACE_BT709_LIMITED  = define_colorspace(COLOR_TYPE_YCBCR,
-                                  COLOR_RANGE_LIMITED,
-                                  COLOR_PRIMARIES_BT709,
-                                  TRANSFER_CHARACTERISTICS_BT709,
-                                  MATRIX_COEFFICIENTS_BT709,
-                                  CHROMA_LOCATION_LEFT)
-    COLORSPACE_BT601_LIMITED  = define_colorspace(COLOR_TYPE_YCBCR,
-                                  COLOR_RANGE_LIMITED,
-                                  COLOR_PRIMARIES_BT601,
-                                  TRANSFER_CHARACTERISTICS_BT601,
-                                  MATRIX_COEFFICIENTS_BT601,
-                                  CHROMA_LOCATION_LEFT)
-    COLORSPACE_BT2020_LIMITED = define_colorspace(COLOR_TYPE_YCBCR,
-                                  COLOR_RANGE_LIMITED,
-                                  COLOR_PRIMARIES_BT2020,
-                                  TRANSFER_CHARACTERISTICS_PQ,
-                                  MATRIX_COEFFICIENTS_BT2020_NCL,
-                                  CHROMA_LOCATION_LEFT)
-
-    COLORSPACE_JPEG           = define_colorspace(COLOR_TYPE_YCBCR,
-                                  COLOR_RANGE_FULL,
-                                  COLOR_PRIMARIES_BT709,
-                                  TRANSFER_CHARACTERISTICS_BT601,
-                                  MATRIX_COEFFICIENTS_BT601,
-                                  CHROMA_LOCATION_NONE)
-
-    COLORSPACE_BT709_FULL     = define_colorspace(COLOR_TYPE_YCBCR,
-                                  COLOR_RANGE_FULL,
-                                  COLOR_PRIMARIES_BT709,
-                                  TRANSFER_CHARACTERISTICS_BT709,
-                                  MATRIX_COEFFICIENTS_BT709,
-                                  CHROMA_LOCATION_LEFT)
-    COLORSPACE_BT601_FULL     = define_colorspace(COLOR_TYPE_YCBCR,
-                                  COLOR_RANGE_FULL,
-                                  COLOR_PRIMARIES_BT601,
-                                  TRANSFER_CHARACTERISTICS_BT601,
-                                  MATRIX_COEFFICIENTS_BT601,
-                                  CHROMA_LOCATION_LEFT)
-    COLORSPACE_BT2020_FULL    = define_colorspace(COLOR_TYPE_YCBCR,
-                                  COLOR_RANGE_FULL,
-                                  COLOR_PRIMARIES_BT2020,
-                                  TRANSFER_CHARACTERISTICS_PQ,
-                                  MATRIX_COEFFICIENTS_BT2020_NCL,
-                                  CHROMA_LOCATION_LEFT)
+    COLORSPACE_UNKNOWN        = 0
+    COLORSPACE_SRGB_LINEAR    = 0x12000500
+    COLORSPACE_SRGB           = 0x120005a0
+    COLORSPACE_HDR10          = 0x12002600
+    COLORSPACE_BT709_LIMITED  = 0x21100421
+    COLORSPACE_BT601_LIMITED  = 0x211018c6
+    COLORSPACE_BT2020_LIMITED = 0x21102609
+    COLORSPACE_JPEG           = 0x220004c6
+    COLORSPACE_BT709_FULL     = 0x22100421
+    COLORSPACE_BT601_FULL     = 0x221018c6
+    COLORSPACE_BT2020_FULL    = 0x22102609
 
 const
   COLORSPACE_RGB_DEFAULT* = COLORSPACE_SRGB
@@ -465,10 +393,10 @@ type
     version*  : uint32
     refcount  : cint
 
-  PixelFormat* {.bycopy, final, pure.} = object
+type
+  PixelFormatDetails* {.bycopy, final, pure.} = object
     ##  Pixel format. All attributes are read-only.
     format*           : PixelFormatEnum
-    palette*          : ptr Palette
     bits_per_pixel*   : byte
     bytes_per_pixel*  : byte
     padding           : array[2, byte]
@@ -476,16 +404,17 @@ type
     gmask*            : uint32
     bmask*            : uint32
     amask*            : uint32
-    rloss*            : byte
-    gloss*            : byte
-    bloss*            : byte
-    aloss*            : byte
+    rbits*            : byte
+    gbits*            : byte
+    bbits*            : byte
+    abits*            : byte
     rshift*           : byte
     gshift*           : byte
     bshift*           : byte
     ashift*           : byte
-    refcount          : cint
-    next*             : ptr PixelFormat
+
+  PixelFormatDetailsPtr* = ptr PixelFormatDetails
+    ##  Pixel format pointer.
 
 # --------------------------------------------------------------------------- #
 #   Sanity checks                                                             #
@@ -494,7 +423,7 @@ type
 when defined(gcc) and hostCPU == "amd64":
   when Palette.sizeof != 24:
     {.error: "invalid Palette size: " & $Palette.sizeof.}
-  when PixelFormat.sizeof != 56:
-    {.error: "invalid PixelFormat size: " & $PixelFormat.sizeof.}
+  # when PixelFormatDetails.sizeof != 56:
+  #   {.error: "invalid PixelFormat size: " & $PixelFormatDetails.sizeof.}
 
 # vim: set sts=2 et sw=2:
