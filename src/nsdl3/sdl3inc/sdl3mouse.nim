@@ -1,4 +1,5 @@
 ##  Mouse event definitions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
@@ -7,6 +8,7 @@
 
 type
   MouseID* = distinct uint32
+    ##  Mouse ID.
 
   Cursor* = ptr object
     ##  Cursor.

@@ -1,4 +1,5 @@
 ##  Keyboard scancodes definitions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#

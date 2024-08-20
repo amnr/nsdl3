@@ -1,52 +1,49 @@
 ##  SDL3 ABI functions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
 
 {.push raises: [].}
 
-# XXX:
-# when NimMajor >= 2 or defined nimPreviewSlimSystem:
-#   from std/assertions import assert, doAssert
-
-import dlutils
+import pkg/dlutils
 
 import config
 
 when use_audio:
-  import sdl3inc/audio
+  import sdl3inc/sdl3audio
 when use_blendmode:
-  import sdl3inc/blendmode
+  import sdl3inc/sdl3blendmode
 when use_clipboard:
-  import sdl3inc/clipboard
-import sdl3inc/events
+  import sdl3inc/sdl3clipboard
+import sdl3inc/sdl3events
 # XXX: gamepad
 # XXX: haptic
 # XXX: hidapi
 when use_hints:
-  import sdl3inc/hints
-import sdl3inc/init
-import sdl3inc/iostream
+  import sdl3inc/sdl3hints
+import sdl3inc/sdl3init
+import sdl3inc/sdl3iostream
 when use_joystick:
-  import sdl3inc/joystick
-# XXX: keyboard
-# import sdl3inc/keycode
-import sdl3inc/log
+  import sdl3inc/sdl3joystick
+when use_keyboard:
+  import sdl3inc/sdl3keycode
+import sdl3inc/sdl3log
 when use_messagebox:
-  import sdl3inc/messagebox
+  import sdl3inc/sdl3messagebox
 when use_mouse:
-  import sdl3inc/mouse
+  import sdl3inc/sdl3mouse
 # XXX: pen
-import sdl3inc/pixels
+import sdl3inc/sdl3pixels
 when use_properties:
-  import sdl3inc/properties
-import sdl3inc/rect
-import sdl3inc/render
+  import sdl3inc/sdl3properties
+import sdl3inc/sdl3rect
+import sdl3inc/sdl3render
 # XXX: sensor
-import sdl3inc/surface
-import sdl3inc/timer
+import sdl3inc/sdl3surface
+import sdl3inc/sdl3timer
 # XXX: touch
-import sdl3inc/video
+import sdl3inc/sdl3video
 # XXX: vulkan
 
 when defined macosx:
@@ -115,6 +112,8 @@ dlgencalls "sdl3", lib_paths:
     proc SDL_GetAudioDriver(
       index     : cint
     ): cstring
+
+    # const char * SDL_GetAudioFormatName(SDL_AudioFormat format)
 
     proc SDL_GetAudioPlaybackDevices(
       count     : ptr cint
@@ -361,12 +360,12 @@ dlgencalls "sdl3", lib_paths:
     proc SDL_GetHint(name: HintName): cstring
 
     # SDL_bool SDL_GetHintBoolean(const char *name, SDL_bool default_value)
-    # SDL_bool SDL_ResetHint(const char *name)
+    # int SDL_ResetHint(const char *name)
     # void SDL_ResetHints(void)
 
-    proc SDL_SetHint(name: cstring, value: cstring): SdlBool
+    proc SDL_SetHint(name: cstring, value: cstring): cint
 
-    # SDL_bool SDL_SetHintWithPriority(const char *name, const char *value,
+    # int SDL_SetHintWithPriority(const char *name, const char *value,
     #     proc SDL_HintPriority priority)
 
   # ------------------------------------------------------------------------- #
@@ -476,7 +475,13 @@ dlgencalls "sdl3", lib_paths:
   # <SDL3/SDL_keyboard.h>                                                     #
   # ------------------------------------------------------------------------- #
 
-  # TODO.
+  when use_keyboard:
+
+    # XXX.
+
+    proc SDL_GetKeyName(key: Keycode): cstring
+
+    # XXX.
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_log.h>                                                          #
@@ -498,27 +503,17 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_SetLogOutputFunction(callback: LogOutputFunction, userdata: pointer)
 
+  # void SDL_SetLogPriorities(SDL_LogPriority priority)
+
   proc SDL_SetLogPriority(category: LogCategory, priority: LogPriority)
 
-  # void SDL_SetLogPriorities(SDL_LogPriority priority)
+  # int SDL_SetLogPriorityPrefix(SDL_LogPriority priority, const char *prefix)
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_main.h>                                                         #
   # ------------------------------------------------------------------------- #
 
-  # int SDL_AppEvent(const SDL_Event *event)
-  # int SDL_AppInit(int argc, char *argv[])
-  # int SDL_AppIterate(void)
-  # void SDL_AppQuit(void)
-  # int SDL_EnterAppMainCallbacks(int argc, char* argv[],
-  #     proc SDL_AppInit_func appinit, SDL_AppIterate_func appiter,
-  #     proc SDL_AppEvent_func appevent, SDL_AppQuit_func appquit)
-  # void SDL_GDKSuspendComplete(void)
-  # int SDL_RegisterApp(const char *name, Uint32 style, void *hInst)
-  # int SDL_RunApp(int argc, char* argv[], SDL_main_func mainFunction,
-  #     void *reserved)
-  # void SDL_SetMainReady(void)
-  # void SDL_UnregisterApp(void)
+  # TODO.
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_messagebox.h>                                                   #
@@ -566,7 +561,7 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_GetMouseState(x, y: ptr cfloat): MouseButtonFlags
 
-    proc SDL_GetRelativeMouseMode(): SdlBool
+    proc SDL_GetWindowRelativeMouseMode(window: Window): SdlBool
 
     # MouseButtonFlags SDL_GetRelativeMouseState(float *x, float *y)
 
@@ -576,7 +571,7 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_SetCursor(cursor: Cursor): cint
 
-    proc SDL_SetRelativeMouseMode(enabled: SdlBool): cint
+    proc SDL_SetWindowRelativeMouseMode(window: Window, enabled: SdlBool): cint
 
     proc SDL_ShowCursor(): cint
 

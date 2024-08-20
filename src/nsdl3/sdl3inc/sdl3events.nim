@@ -1,23 +1,24 @@
 ##  Event definitions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
 
 {.push raises: [].}
 
-from audio import AudioDeviceID
-from camera import CameraDeviceID
-from init import SdlBool
-from joystick import Hat, JoystickID
-from keyboard import KeyboardID
-from keycode import Keycode, Keymod
-from mouse import MouseButtonFlags, MouseID, MouseWheelDirection
-from pen import PenID, PEN_NUM_AXES
-from power import PowerState
-from scancode import Scancode
-from sensor import SensorID
-from touch import FingerID, TouchID
-from video import DisplayID, WindowID
+from sdl3audio import AudioDeviceID
+from sdl3camera import CameraDeviceID
+from sdl3init import SdlBool
+from sdl3joystick import Hat, JoystickID
+from sdl3keyboard import KeyboardID
+from sdl3keycode import Keycode, Keymod
+from sdl3mouse import MouseButtonFlags, MouseID, MouseWheelDirection
+from sdl3pen import PenAxis, PenID, PenInputFlags, PEN_NUM_AXES
+from sdl3power import PowerState
+from sdl3scancode import Scancode
+from sdl3sensor import SensorID
+from sdl3touch import FingerID, TouchID
+from sdl3video import DisplayID, WindowID
 
 # General keyboard/mouse state definitions.
 const
@@ -76,8 +77,6 @@ type
     EVENT_WINDOW_ENTER_FULLSCREEN
     EVENT_WINDOW_LEAVE_FULLSCREEN
     EVENT_WINDOW_DESTROYED
-    EVENT_WINDOW_PEN_ENTER
-    EVENT_WINDOW_PEN_LEAVE
     EVENT_WINDOW_HDR_STATE_CHANGED
 
     # Keyboard events.
@@ -147,11 +146,14 @@ type
     EVENT_SENSOR_UPDATE         = 0x1200
 
     # Pressure-sensitive pen events.
-    EVENT_PEN_DOWN              = 0x1300
+    EVENT_PEN_PROXIMITY_IN      = 0x1300
+    EVENT_PEN_PROXIMITY_OUT
+    EVENT_PEN_DOWN
     EVENT_PEN_UP
-    EVENT_PEN_MOTION
     EVENT_PEN_BUTTON_DOWN
     EVENT_PEN_BUTTON_UP
+    EVENT_PEN_MOTION
+    EVENT_PEN_AXIS
 
     # Camera hotplug events.
     EVENT_CAMERA_DEVICE_ADDED   = 0x1400
@@ -185,7 +187,7 @@ const
   EVENT_DISPLAY_LAST*   = EVENT_DISPLAY_CONTENT_SCALE_CHANGED
 
   EVENT_WINDOW_FIRST*   = EVENT_WINDOW_SHOWN
-  EVENT_WINDOW_LAST*    = EVENT_WINDOW_PEN_LEAVE
+  EVENT_WINDOW_LAST*    = EVENT_WINDOW_HDR_STATE_CHANGED
 
 type
   CommonEvent* {.final, pure.} = object
@@ -279,7 +281,7 @@ type
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with mouse focus (if any).
-    which*        : MouseID     ##  Mouse instance ID, `TOUCH_MOUSEID` or `PEN_MOUSEID`.
+    which*        : MouseID     ##  Mouse instance ID or `TOUCH_MOUSEID`.
     state*        : MouseButtonFlags      ##  Button state.
     x*            : cfloat      ##  X position.
     y*            : cfloat      ##  Y position.
@@ -292,7 +294,7 @@ type
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with mouse focus (if any).
-    which*        : MouseID     ##  Mouse instance ID, `SDL_TOUCH_MOUSEID` or `PEN_MOUSEID`.
+    which*        : MouseID     ##  Mouse instance ID or `SDL_TOUCH_MOUSEID`.
     button*       : byte        ##  Mouse button index.
     state*        : byte        ##  `PRESSED` or `RELEASED`.
     clicks*       : byte        ##  Single click (1), double click (2), etc.
@@ -306,7 +308,7 @@ type
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window with mouse focus (if any).
-    which*        : MouseID     ##  Mouse instance ID, `SDL_TOUCH_MOUSEID` or `PEN_MOUSEID`.
+    which*        : MouseID     ##  Mouse instance ID or `SDL_TOUCH_MOUSEID`.
     x*            : cfloat      ##  Horizontal scroll amount. Positive to the
                                 ##  right. Negative to the left.
     y*            : cfloat      ##  Vertical scroll amount. Positive to the
@@ -472,53 +474,63 @@ type
     pressure*     : cfloat      ##  Normalized, range 0 - 1.
     window_id*    : WindowID    ##  Window underneath the finger (if any).
 
-  PenTipEvent* {.final, pure.} = object
-    ##  Pressure-sensitive pen touched or stopped touching surface.
-    typ*          : EventType   ##  `EVENT_PEN_DOWN` or ``SDL_EVENT_PEN_UP`.
+  PenProximityEvent* {.final, pure.} = object
+    ##  Pressure-sensitive pen proximity event.
+    typ*          : EventType   ##  `EVENT_PEN_PROXIMITY_IN` or ``SDL_EVENT_PROXIMITY_OUT`.
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
-    window_id*    : WindowID    ##  The window with pen focus, if any.
+    window_id*    : WindowID    ##  The window with mouse focus, if any.
     which*        : PenID       ##  The pen instance id.
-    tip*          : byte        ##  `PEN_TIP_INK` when using a regular pen tip, or `PEN_TIP_ERASER` if the pen is being used as an eraser (e.g., flipped to use the eraser tip).
-    state*        : byte        ##  `PRESSED` on `EVENT_PEN_DOWN` and `RELEASED` on `EVENT_PEN_UP`.
-    pen_state*    : uint16      ##  Pen button masks (where SDL_BUTTON(1) is the first button, SDL_BUTTON(2) is the second button etc.),
-                                ##  `PEN_DOWN_MASK` is set if the pen is touching the surface, and
-                                ##  `PEN_ERASER_MASK` is set if the pen is (used as) an eraser.
-    x*            : cfloat      ##  X position.
-    y*            : cfloat      ##  Y position.
-    axes*         : array[PEN_NUM_AXES, cfloat]   ##  Pen axes such as pressure and tilt (ordered as per `PenAxis`).
 
   PenMotionEvent* {.final, pure.} = object
-    ##  Pressure-sensitive pen motion / pressure / angle event structure.
+    ##  Pressure-sensitive pen motion event.
     typ*          : EventType   ##  `EVENT_PEN_MOTION`.
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
-    padding1      : byte
-    padding2      : byte
-    pen_state*    : uint16      ##  Pen button masks (where SDL_BUTTON(1) is the first button, SDL_BUTTON(2) is the second button etc.),
-                                ##  `PEN_DOWN_MASK` is set if the pen is touching the surface, and
-                                ##  `PEN_ERASER_MASK` is set if the pen is (used as) an eraser.
+    pen_state*    : PenInputFlags   ##  Complete pen input state at time of event.
     x*            : cfloat      ##  X position.
     y*            : cfloat      ##  Y position.
-    axes*         : array[PEN_NUM_AXES, cfloat]   ##  Pen axes such as pressure and tilt (ordered as per `PenAxis`).
+
+  PenTouchEvent* {.final, pure.} = object
+    ##  Pressure-sensitive pen touched event.
+    typ*          : EventType   ##  `EVENT_PEN_DOWN` or `EVENT_PEN_UP`.
+    reserved      : uint32
+    timestamp*    : uint64      ##  Timestamp (ns).
+    window_id*    : WindowID    ##  The window with pen focus, if any.
+    which*        : PenID       ##  The pen instance id.
+    pen_state*    : PenInputFlags   ##  Complete pen input state at time of event.
+    x*            : cfloat      ##  X position.
+    y*            : cfloat      ##  Y position.
+    eraser*       : byte        ##  Non-zero if eraser end is used.
+    state*        : byte        ##  `PRESSED` or `RELEASED`.
 
   PenButtonEvent* {.final, pure.} = object
-    ##  Pressure-sensitive pen button event structure.
+    ##  Pressure-sensitive pen button event.
     typ*          : EventType   ##  `EVENT_PEN_BUTTON_DOWN` or `EVENT_PEN_BUTTON_UP`.
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
-    button*       : byte        ##  The pen button index (1 represents the pen tip for compatibility with mouse events).
-    state*        : byte        ##  `PRESSED` or `RELEASED`.
-    pen_state*    : uint16      ##  Pen button masks (where SDL_BUTTON(1) is the first button, SDL_BUTTON(2) is the second button etc.),
-                                ##  `PEN_DOWN_MASK` is set if the pen is touching the surface, and
-                                ##  `PEN_ERASER_MASK` is set if the pen is (used as) an eraser.
+    pen_state*    : PenInputFlags   ##  Complete pen input state at time of event.
     x*            : cfloat      ##  X position.
     y*            : cfloat      ##  Y position.
-    axes*         : array[PEN_NUM_AXES, cfloat]   ##  Pen axes such as pressure and tilt (ordered as per `PenAxis`).
+    button*       : byte        ##  The pen button index (first button is 1).
+    state*        : byte        ##  `PRESSED` or `RELEASED`.
+
+  PenAxisEvent* {.final, pure.} = object
+    ##  Pressure-sensitive pen pressure / angle event.
+    typ*          : EventType   ##  `EVENT_PEN_AXIS`.
+    reserved      : uint32
+    timestamp*    : uint64      ##  Timestamp (ns).
+    window_id*    : WindowID    ##  The window with pen focus, if any.
+    which*        : PenID       ##  The pen instance id.
+    pen_state*    : PenInputFlags   ##  Complete pen input state at time of event.
+    x*            : cfloat      ##  X position.
+    y*            : cfloat      ##  Y position.
+    axis*         : PenAxis     ##  Axis that has changed.
+    value*        : cfloat      ##  New value of axis.
 
   DropEvent* {.final, pure.} = object
     ##  An event used to drop text or request a file open by the system.
@@ -589,9 +601,9 @@ type
     jhat*         : JoyHatEvent               ##  Joystick hat event.
     jbutton*      : JoyButtonEvent            ##  Joystick button event.
     jbattery*     : JoyBatteryEvent           ##  Joystick battery event.
+    gdevice*      : GamepadDeviceEvent        ##  Gamepad device event.
     gaxis*        : GamepadAxisEvent          ##  Gamepad axis event.
     gbutton*      : GamepadButtonEvent        ##  Gamepad button event.
-    gdevice*      : GamepadDeviceEvent        ##  Gamepad device event.
     gtouchpad*    : GamepadTouchpadEvent      ##  Gamepad touchpad event.
     gsensor*      : GamepadSensorEvent        ##  Gamepad sensor event.
     adevice*      : AudioDeviceEvent          ##  Audio device event.
@@ -600,14 +612,14 @@ type
     quit*         : QuitEvent                 ##  Quit request event.
     user*         : UserEvent                 ##  Custom event.
     tfinger*      : TouchFingerEvent          ##  Touch finger event.
-    ptip*         : PenTipEvent               ##  Pen tip event.
+    pproximity*   : PenProximityEvent         ##  Pen proximity event.
+    ptouch*       : PenTouchEvent             ##  Pen tip touching event.
     pmotion*      : PenMotionEvent            ##  Pen motion event.
     pbutton*      : PenButtonEvent            ##  Pen button event.
+    paxis*        : PenAxisEvent              ##  Pen axis event.
     drop*         : DropEvent                 ##  Drag and drop event.
     clipboard*    : ClipboardEvent            ##  Clipboard change event.
-
-    # See `SDL_events.h` for details.
-    padding       : array[128, byte]
+    padding       : array[128, byte]    # See `SDL_events.h` for details.
 
 # Let's make sure we haven't broken binary compatibility.
 when Event.sizeof != Event.padding.sizeof:
@@ -622,7 +634,7 @@ type
 
 type
   EventFilter* = proc (userdata : pointer,
-                       event    : ptr Event): cint {.cdecl, raises: [].}
+                       event    : ptr Event): SdlBool {.cdecl, raises: [].}
     ##  A function pointer used for callbacks that watch the event queue.
 
 # ============================================================================ #
@@ -690,12 +702,12 @@ when hostCPU == "amd64" and defined gcc:
     {.error: "invalid AudioDeviceEvent size: " & $AudioDeviceEvent.sizeof.}
   when TouchFingerEvent.sizeof != 56:
     {.error: "invalid TouchFingerEvent size: " & $TouchFingerEvent.sizeof.}
-  when PenTipEvent.sizeof != 64:
-    {.error: "invalid PenTipEvent size: " & $PenTipEvent.sizeof.}
-  when PenMotionEvent.sizeof != 64:
-    {.error: "invalid PenMotionEvent size: " & $PenMotionEvent.sizeof.}
-  when PenButtonEvent.sizeof != 64:
-    {.error: "invalid PenButtonEvent size: " & $PenButtonEvent.sizeof.}
+  # when PenTipEvent.sizeof != 64:
+  #   {.error: "invalid PenTipEvent size: " & $PenTipEvent.sizeof.}
+  # when PenMotionEvent.sizeof != 64:
+  #   {.error: "invalid PenMotionEvent size: " & $PenMotionEvent.sizeof.}
+  # when PenButtonEvent.sizeof != 64:
+  #   {.error: "invalid PenButtonEvent size: " & $PenButtonEvent.sizeof.}
   when DropEvent.sizeof != 48:
     {.error: "invalid DropEvent size: " & $DropEvent.sizeof.}
   when ClipboardEvent.sizeof != 16:

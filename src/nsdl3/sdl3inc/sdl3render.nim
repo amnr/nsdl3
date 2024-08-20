@@ -1,12 +1,13 @@
 ##  Renderer definitions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
 
 {.push raises: [].}
 
-from pixels import FColor, PixelFormatEnum
-from rect import FPoint
+from sdl3pixels import FColor, PixelFormatEnum
+from sdl3rect import FPoint
 
 const
   SOFTWARE_RENDERER*  = cstring"software"
@@ -45,17 +46,17 @@ type
 
   RenderCreateProperty* = enum
     ##  Render property.
-    PROP_RENDERER_CREATE_NAME_STRING                                = cstring"name"
-    PROP_RENDERER_CREATE_WINDOW_POINTER                             = cstring"window"
-    PROP_RENDERER_CREATE_SURFACE_POINTER                            = cstring"surface"
-    PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER                   = cstring"output_colorspace"
-    PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER                       = cstring"present_vsync"
-    PROP_RENDERER_CREATE_VULKAN_INSTANCE_POINTER                    = cstring"vulkan.instance"
-    PROP_RENDERER_CREATE_VULKAN_SURFACE_NUMBER                      = cstring"vulkan.surface"
-    PROP_RENDERER_CREATE_VULKAN_PHYSICAL_DEVICE_POINTER             = cstring"vulkan.physical_device"
-    PROP_RENDERER_CREATE_VULKAN_DEVICE_POINTER                      = cstring"vulkan.device"
-    PROP_RENDERER_CREATE_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER  = cstring"vulkan.graphics_queue_family_index"
-    PROP_RENDERER_CREATE_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER   = cstring"vulkan.present_queue_family_index"
+    PROP_RENDERER_CREATE_NAME_STRING                                = cstring"SDL.renderer.create.name"
+    PROP_RENDERER_CREATE_WINDOW_POINTER                             = cstring"SDL.renderer.create.window"
+    PROP_RENDERER_CREATE_SURFACE_POINTER                            = cstring"SDL.renderer.create.surface"
+    PROP_RENDERER_CREATE_OUTPUT_COLORSPACE_NUMBER                   = cstring"SDL.renderer.create.output_colorspace"
+    PROP_RENDERER_CREATE_PRESENT_VSYNC_NUMBER                       = cstring"SDL.renderer.create.present_vsync"
+    PROP_RENDERER_CREATE_VULKAN_INSTANCE_POINTER                    = cstring"SDL.renderer.create.vulkan.instance"
+    PROP_RENDERER_CREATE_VULKAN_SURFACE_NUMBER                      = cstring"SDL.renderer.create.vulkan.surface"
+    PROP_RENDERER_CREATE_VULKAN_PHYSICAL_DEVICE_POINTER             = cstring"SDL.renderer.create.vulkan.physical_device"
+    PROP_RENDERER_CREATE_VULKAN_DEVICE_POINTER                      = cstring"SDL.renderer.create.vulkan.device"
+    PROP_RENDERER_CREATE_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER  = cstring"SDL.renderer.create.vulkan.graphics_queue_family_index"
+    PROP_RENDERER_CREATE_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER   = cstring"SDL.renderer.create.vulkan.present_queue_family_index"
 
   RenderDeviceProperty* = enum
     PROP_RENDERER_NAME_STRING                               = cstring"SDL.renderer.name"

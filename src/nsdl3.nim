@@ -55,6 +55,7 @@
 ##  ```sh
 ##  nim c -d=sdl3.audio=0 file(s)
 ##  ```
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
@@ -70,51 +71,46 @@ import nsdl3/config
 import nsdl3/libsdl3
 import nsdl3/utils
 
-when use_audio:
-  import nsdl3/sdl3inc/audio
-when use_blendmode:
-  import nsdl3/sdl3inc/blendmode
-import nsdl3/sdl3inc/events
-when use_hints:
-  import nsdl3/sdl3inc/hints
-import nsdl3/sdl3inc/init
-when use_joystick:
-  import nsdl3/sdl3inc/joystick
-import nsdl3/sdl3inc/keycode
-import nsdl3/sdl3inc/log
-when use_messagebox:
-  import nsdl3/sdl3inc/messagebox
-when use_mouse:
-  import nsdl3/sdl3inc/mouse
-import nsdl3/sdl3inc/pixels
-import nsdl3/sdl3inc/properties
-import nsdl3/sdl3inc/rect
-import nsdl3/sdl3inc/render
-# import nsdl3/sdl3inc/rwops
-import nsdl3/sdl3inc/surface
-import nsdl3/sdl3inc/timer
-import nsdl3/sdl3inc/video
-
 export open_sdl3_library, close_sdl3_library, last_sdl3_error
 
 when use_audio:
-  export audio
-export events
+  import nsdl3/sdl3inc/sdl3audio
+  export sdl3audio
+when use_blendmode:
+  import nsdl3/sdl3inc/sdl3blendmode
+import nsdl3/sdl3inc/sdl3events
+export sdl3events
 when use_hints:
-  export hints
-export init
-export keycode
-export log
+  import nsdl3/sdl3inc/sdl3hints
+  export sdl3hints
+import nsdl3/sdl3inc/sdl3init
+export sdl3init
+when use_joystick:
+  import nsdl3/sdl3inc/sdl3joystick
+import nsdl3/sdl3inc/sdl3keycode
+export sdl3keycode
+import nsdl3/sdl3inc/sdl3log
+export sdl3log
 when use_messagebox:
-  export messagebox
+  import nsdl3/sdl3inc/sdl3messagebox
+  export sdl3messagebox
 when use_mouse:
-  export mouse
-export pixels
-export rect
-export render
-export surface
-export timer
-export video
+  import nsdl3/sdl3inc/sdl3mouse
+  export sdl3mouse
+import nsdl3/sdl3inc/sdl3pixels
+export sdl3pixels
+import nsdl3/sdl3inc/sdl3properties
+import nsdl3/sdl3inc/sdl3rect
+export sdl3rect
+import nsdl3/sdl3inc/sdl3render
+export sdl3render
+# import nsdl3/sdl3inc/rwops
+import nsdl3/sdl3inc/sdl3surface
+export sdl3surface
+import nsdl3/sdl3inc/sdl3timer
+export sdl3timer
+import nsdl3/sdl3inc/sdl3video
+export sdl3video
 
 when not declared newSeqUninit:
   template newSeqUninit*[T: SomeNumber](len: Natural): seq[T] =
@@ -192,6 +188,8 @@ when use_audio:
       log_error "SDL_GetAudioDriver failed: " & $SDL_GetError()
       return ""
     $name
+
+  # const char * SDL_GetAudioFormatName(SDL_AudioFormat format)
 
   proc GetAudioPlaybackDevices*(): seq[AudioDeviceID] =
     ##  ```c
@@ -320,16 +318,6 @@ when use_blendmode:
                                dst_alpha_factor: BlendFactor,
                                alpha_operation: BlendOperation): BlendMode =
     ##  Compose a custom blend mode for renderers.
-    ##
-    ##  ```c
-    ##  SDL_BlendMode
-    ##  SDL_ComposeCustomBlendMode(SDL_BlendFactor srcColorFactor,
-    ##                             SDL_BlendFactor dstColorFactor,
-    ##                             SDL_BlendOperation colorOperation,
-    ##                             SDL_BlendFactor srcAlphaFactor,
-    ##                             SDL_BlendFactor dstAlphaFactor,
-    ##                             SDL_BlendOperation alphaOperation)
-    ##  ```
     SDL_ComposeCustomBlendMode src_color_factor, dst_color_factor,
                                color_operation, src_alpha_factor,
                                dst_alpha_factor, alpha_operation
@@ -543,11 +531,12 @@ when use_hints:
   # SDL_bool SDL_ResetHint(const char *name)
   # void SDL_ResetHints(void)
 
-  proc SetHint*(name: HintName, value: string): bool {.inline.} =
+  proc SetHint*(name: HintName, value: string): bool =
     ##  ```c
     ##  SDL_bool SDL_SetHint(const char *name, const char *value)
     ##  ```
-    SDL_SetHint(cstring $name, value.cstring)
+    ensure_zero "SDL_SetHint":
+      SDL_SetHint(cstring $name, value.cstring)
 
   # SDL_bool SDL_SetHintWithPriority(const char *name, const char *value,
   #     SDL_HintPriority priority)
@@ -733,7 +722,15 @@ when use_joystick:
 # <SDL3/SDL_keyboard.h>                                                       #
 # --------------------------------------------------------------------------- #
 
-# TODO.
+when use_keyboard:
+
+  # XXX.
+
+  proc GetKeyName*(key: Keycode): string {.inline.} =
+    ##  XXX.
+    $SDL_GetKeyName key
+
+  # XXX.
 
 # --------------------------------------------------------------------------- #
 # <SDL3/SDL_log.h>                                                            #
@@ -949,11 +946,9 @@ when use_mouse:
     let state = SDL_GetMouseState(outx.addr, outy.addr)
     (outx.float, outy.float, state)
 
-  proc GetRelativeMouseMode*(): bool =
-    ##  ```c
-    ##  SDL_bool SDL_GetRelativeMouseMode(void)
-    ##  ```
-    SDL_GetRelativeMouseMode()
+  proc GetWindowRelativeMouseMode*(window: Window): bool =
+    ##  XXX.
+    SDL_GetWindowRelativeMouseMode window
 
   # Uint32 SDL_GetRelativeMouseState(float *x, float *y)
 
@@ -978,14 +973,10 @@ when use_mouse:
     ensure_zero "SDL_SetCursor":
       SDL_SetCursor cursor
 
-  proc SetRelativeMouseMode*(enabled: bool): bool =
+  proc SetWindowRelativeMouseMode*(window: Window, enabled: bool): bool =
     ##  Set relative mouse mode.
-    ##
-    ##  ```c
-    ##  int SDL_SetRelativeMouseMode(SDL_bool enabled)
-    ##  ```
-    ensure_zero "SDL_SetRelativeMouseMode":
-      SDL_SetRelativeMouseMode enabled
+    ensure_zero "SDL_SetWindowRelativeMouseMode":
+      SDL_SetWindowRelativeMouseMode window, enabled
 
   proc ShowCursor*(): bool {.discardable, inline.} =
     ##  ```c
@@ -1054,7 +1045,7 @@ proc GetPixelFormatForMasks*(bpp: int, rmask: uint32, gmask: uint32,
   ##                                        Uint32 Gmask, Uint32 Bmask,
   ##                                        Uint32 Amask)
   ##  ```
-  GetPixelFormatForMasks bpp.cint, rmask, gmask, bmask, amask
+  SDL_GetPixelFormatForMasks bpp.cint, rmask, gmask, bmask, amask
 
 # const char* SDL_GetPixelFormatName(Uint32 format)
 # void SDL_GetRGB(Uint32 pixel, const SDL_PixelFormat *format, Uint8 *r,
@@ -2098,6 +2089,7 @@ proc GetClosestFullscreenDisplayMode*(display_id: DisplayID, w: int, h: int,
                                                 refresh_rate.cfloat,
                                                 include_high_density_modes
 
+# XXX: do a copy instrad of returning ptr?
 proc GetCurrentDisplayMode*(display_id: DisplayID): ptr DisplayMode =
   ##  Get information about the current display mode.
   ##

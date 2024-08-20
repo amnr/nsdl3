@@ -1,6 +1,10 @@
 ##  Viceo capture.
+##
+#[
+  SPDX-License-Identifier: NCSA OR MIT OR Zlib
+]#
 
-from pixels import PixelFormatEnum
+from sdl3pixels import PixelFormatEnum
 
 type
   CameraDeviceID* = distinct uint32

@@ -1,11 +1,12 @@
 ##  Surface definitions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
 
 {.push raises: [].}
 
-from pixels import PixelFormatEnum
+from sdl3pixels import PixelFormatEnum
 
 type
   SurfaceFlags* = distinct uint32

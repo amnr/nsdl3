@@ -1,11 +1,12 @@
 ##  Message box definitions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
 
 {.push raises: [].}
 
-from video import Window
+from sdl3video import Window
 
 type
   MessageBoxFlags* {.size: uint32.sizeof.} = distinct uint32

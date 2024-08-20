@@ -1,4 +1,5 @@
 ##  Blend modes.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#

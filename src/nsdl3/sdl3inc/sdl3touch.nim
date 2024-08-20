@@ -1,11 +1,12 @@
 ##  Touch event definitions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
 
 {.push raises: [].}
 
-from mouse import MouseID
+from sdl3mouse import MouseID
 
 type
   TouchID*  = uint64

@@ -1,4 +1,8 @@
 ##  Video capture.
+##
+#[
+  SPDX-License-Identifier: NCSA OR MIT OR Zlib
+]#
 
 {.push raises: [].}
 

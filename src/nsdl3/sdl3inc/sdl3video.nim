@@ -1,22 +1,23 @@
 ##  Video definitions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
 
 {.push raises: [].}
 
-from pixels import PixelFormatEnum
-from rect import Point
+from sdl3pixels import PixelFormatEnum
+from sdl3rect import Point
 
 type
   DisplayID* = distinct uint32
-    ##  Display ID.
+    ##  Unique display ID.
 
 func `==`*(a, b: DisplayID): bool {.borrow.}
 
 type
   WindowID* = distinct uint32
-    ##  Window ID.
+    ##  Unique window ID.
 
 func `==`*(a, b: WindowID): bool {.borrow.}
 
@@ -80,8 +81,8 @@ const
   WINDOW_MODAL*               = WindowFlags 0x00000000_00001000
   WINDOW_HIGH_PIXEL_DENSITY*  = WindowFlags 0x00000000_00002000
   WINDOW_MOUSE_CAPTURE*       = WindowFlags 0x00000000_00004000
-  WINDOW_ALWAYS_ON_TOP*       = WindowFlags 0x00000000_00008000
-  WINDOW_SKIP_TASKBAR*        = WindowFlags 0x00000000_00010000
+  WINDOW_MOUSE_RELATIVE_MODE* = WindowFlags 0x00000000_00008000
+  WINDOW_ALWAYS_ON_TOP*       = WindowFlags 0x00000000_00010000
   WINDOW_UTILITY*             = WindowFlags 0x00000000_00020000
   WINDOW_TOOLTIP*             = WindowFlags 0x00000000_00040000
   WINDOW_POPUP_MENU*          = WindowFlags 0x00000000_00080000
@@ -200,39 +201,39 @@ const
 
 type
   WindowBooleanProperty* = enum
-    PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN                = cstring"always_on_top"
-    PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN                   = cstring"borderless"
-    PROP_WINDOW_CREATE_FOCUSABLE_BOOLEAN                    = cstring"focusable"
-    PROP_WINDOW_CREATE_EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN    = cstring"external_graphics_context"
-    PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN                   = cstring"fullscreen"
-    PROP_WINDOW_CREATE_HEIGHT_NUMBER                        = cstring"height"
-    PROP_WINDOW_CREATE_HIDDEN_BOOLEAN                       = cstring"hidden"
-    PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN           = cstring"high-pixel-density"
-    PROP_WINDOW_CREATE_MAXIMIZED_BOOLEAN                    = cstring"maximized"
-    PROP_WINDOW_CREATE_MENU_BOOLEAN                         = cstring"menu"
-    PROP_WINDOW_CREATE_METAL_BOOLEAN                        = cstring"metal"
-    PROP_WINDOW_CREATE_MINIMIZED_BOOLEAN                    = cstring"minimized"
-    PROP_WINDOW_CREATE_MODAL_BOOLEAN                        = cstring"modal"
-    PROP_WINDOW_CREATE_MOUSE_GRABBED_BOOLEAN                = cstring"mouse_grabbed"
-    PROP_WINDOW_CREATE_OPENGL_BOOLEAN                       = cstring"opengl"
-    PROP_WINDOW_CREATE_PARENT_POINTER                       = cstring"parent"
-    PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN                    = cstring"resizable"
-    PROP_WINDOW_CREATE_TITLE_STRING                         = cstring"title"
-    PROP_WINDOW_CREATE_TRANSPARENT_BOOLEAN                  = cstring"transparent"
-    PROP_WINDOW_CREATE_TOOLTIP_BOOLEAN                      = cstring"tooltip"
-    PROP_WINDOW_CREATE_UTILITY_BOOLEAN                      = cstring"utility"
-    PROP_WINDOW_CREATE_VULKAN_BOOLEAN                       = cstring"vulkan"
-    PROP_WINDOW_CREATE_WIDTH_NUMBER                         = cstring"width"
-    PROP_WINDOW_CREATE_X_NUMBER                             = cstring"x"
-    PROP_WINDOW_CREATE_Y_NUMBER                             = cstring"y"
-    PROP_WINDOW_CREATE_COCOA_WINDOW_POINTER                 = cstring"cocoa.window"
-    PROP_WINDOW_CREATE_COCOA_VIEW_POINTER                   = cstring"cocoa.view"
-    PROP_WINDOW_CREATE_WAYLAND_SURFACE_ROLE_CUSTOM_BOOLEAN  = cstring"wayland.surface_role_custom"
-    PROP_WINDOW_CREATE_WAYLAND_CREATE_EGL_WINDOW_BOOLEAN    = cstring"wayland.create_egl_window"
-    PROP_WINDOW_CREATE_WAYLAND_WL_SURFACE_POINTER           = cstring"wayland.wl_surface"
-    PROP_WINDOW_CREATE_WIN32_HWND_POINTER                   = cstring"win32.hwnd"
-    PROP_WINDOW_CREATE_WIN32_PIXEL_FORMAT_HWND_POINTER      = cstring"win32.pixel_format_hwnd"
-    PROP_WINDOW_CREATE_X11_WINDOW_NUMBER                    = cstring"x11.window"
+    PROP_WINDOW_CREATE_ALWAYS_ON_TOP_BOOLEAN                = cstring"SDL.window.create.always_on_top"
+    PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN                   = cstring"SDL.window.create.borderless"
+    PROP_WINDOW_CREATE_FOCUSABLE_BOOLEAN                    = cstring"SDL.window.create.focusable"
+    PROP_WINDOW_CREATE_EXTERNAL_GRAPHICS_CONTEXT_BOOLEAN    = cstring"SDL.window.create.external_graphics_context"
+    PROP_WINDOW_CREATE_FULLSCREEN_BOOLEAN                   = cstring"SDL.window.create.fullscreen"
+    PROP_WINDOW_CREATE_HEIGHT_NUMBER                        = cstring"SDL.window.create.height"
+    PROP_WINDOW_CREATE_HIDDEN_BOOLEAN                       = cstring"SDL.window.create.hidden"
+    PROP_WINDOW_CREATE_HIGH_PIXEL_DENSITY_BOOLEAN           = cstring"SDL.window.create.high-pixel-density"
+    PROP_WINDOW_CREATE_MAXIMIZED_BOOLEAN                    = cstring"SDL.window.create.maximized"
+    PROP_WINDOW_CREATE_MENU_BOOLEAN                         = cstring"SDL.window.create.menu"
+    PROP_WINDOW_CREATE_METAL_BOOLEAN                        = cstring"SDL.window.create.metal"
+    PROP_WINDOW_CREATE_MINIMIZED_BOOLEAN                    = cstring"SDL.window.create.minimized"
+    PROP_WINDOW_CREATE_MODAL_BOOLEAN                        = cstring"SDL.window.create.modal"
+    PROP_WINDOW_CREATE_MOUSE_GRABBED_BOOLEAN                = cstring"SDL.window.create.mouse_grabbed"
+    PROP_WINDOW_CREATE_OPENGL_BOOLEAN                       = cstring"SDL.window.create.opengl"
+    PROP_WINDOW_CREATE_PARENT_POINTER                       = cstring"SDL.window.create.parent"
+    PROP_WINDOW_CREATE_RESIZABLE_BOOLEAN                    = cstring"SDL.window.create.resizable"
+    PROP_WINDOW_CREATE_TITLE_STRING                         = cstring"SDL.window.create.title"
+    PROP_WINDOW_CREATE_TRANSPARENT_BOOLEAN                  = cstring"SDL.window.create.transparent"
+    PROP_WINDOW_CREATE_TOOLTIP_BOOLEAN                      = cstring"SDL.window.create.tooltip"
+    PROP_WINDOW_CREATE_UTILITY_BOOLEAN                      = cstring"SDL.window.create.utility"
+    PROP_WINDOW_CREATE_VULKAN_BOOLEAN                       = cstring"SDL.window.create.vulkan"
+    PROP_WINDOW_CREATE_WIDTH_NUMBER                         = cstring"SDL.window.create.width"
+    PROP_WINDOW_CREATE_X_NUMBER                             = cstring"SDL.window.create.x"
+    PROP_WINDOW_CREATE_Y_NUMBER                             = cstring"SDL.window.create.y"
+    PROP_WINDOW_CREATE_COCOA_WINDOW_POINTER                 = cstring"SDL.window.create.cocoa.window"
+    PROP_WINDOW_CREATE_COCOA_VIEW_POINTER                   = cstring"SDL.window.create.cocoa.view"
+    PROP_WINDOW_CREATE_WAYLAND_SURFACE_ROLE_CUSTOM_BOOLEAN  = cstring"SDL.window.create.wayland.surface_role_custom"
+    PROP_WINDOW_CREATE_WAYLAND_CREATE_EGL_WINDOW_BOOLEAN    = cstring"SDL.window.create.wayland.create_egl_window"
+    PROP_WINDOW_CREATE_WAYLAND_WL_SURFACE_POINTER           = cstring"SDL.window.create.wayland.wl_surface"
+    PROP_WINDOW_CREATE_WIN32_HWND_POINTER                   = cstring"SDL.window.create.win32.hwnd"
+    PROP_WINDOW_CREATE_WIN32_PIXEL_FORMAT_HWND_POINTER      = cstring"SDL.window.create.win32.pixel_format_hwnd"
+    PROP_WINDOW_CREATE_X11_WINDOW_NUMBER                    = cstring"SDL.window.create.x11.window"
 
 type
   WindowPointerProperty* = enum

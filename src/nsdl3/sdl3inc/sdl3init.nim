@@ -1,4 +1,5 @@
 ##  Init definitions.
+##
 #[
   SPDX-License-Identifier: NCSA OR MIT OR Zlib
 ]#
@@ -25,6 +26,19 @@ const
   INIT_EVENTS*    = InitFlags 0x0000_4000
   INIT_SENSOR*    = InitFlags 0x0000_8000   ##  Implies `INIT_EVENTS`.
   INIT_CAMERA*    = InitFlags 0x0001_0000   ##  Implies `INIT_EVENTS`.
+
+type
+  AppResult* {.size: cint.sizeof.} = enum
+    ##  Return values for optional main callbacks.
+    APP_CONTINUE
+    APP_SUCCESS
+    APP_FAILURE
+
+type
+  AppInit_func* = proc (appstate: ptr pointer, argc: cint, argv: cstringArray): AppResult {.cdecl.}
+  AppIterate_func* = proc (appstate: pointer): AppResult {.cdecl.}
+  # XXX: circular dep: AppEvent_func* = proc (appstate: pointer, event: ptr Event): AppResult {.cdecl.}
+  AppQuit_func* = proc (appstate: pointer) {.cdecl.}
 
 type
   AppMetadataProperty* = enum
