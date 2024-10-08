@@ -16,13 +16,14 @@ type
   PenInputFlags* = distinct uint32
     ##  Pen input flags.
 
-#define SDL_PEN_INPUT_DOWN       (1u << 0)  /**< & to see if pen is pressed down */
-#define SDL_PEN_INPUT_BUTTON_1   (1u << 1)  /**< & to see if button 1 is pressed */
-#define SDL_PEN_INPUT_BUTTON_2   (1u << 2)  /**< & to see if button 2 is pressed */
-#define SDL_PEN_INPUT_BUTTON_3   (1u << 3)  /**< & to see if button 3 is pressed */
-#define SDL_PEN_INPUT_BUTTON_4   (1u << 4)  /**< & to see if button 4 is pressed */
-#define SDL_PEN_INPUT_BUTTON_5   (1u << 5)  /**< & to see if button 5 is pressed */
-#define SDL_PEN_INPUT_ERASER_TIP (1u << 30) /**< & to see if eraser tip is used */
+const
+  PEN_INPUT_DOWN*         = PenInputFlags 1u shl 0
+  PEN_INPUT_BUTTON_1*     = PenInputFlags 1u shl 1
+  PEN_INPUT_BUTTON_2*     = PenInputFlags 1u shl 2
+  PEN_INPUT_BUTTON_3*     = PenInputFlags 1u shl 3
+  PEN_INPUT_BUTTON_4*     = PenInputFlags 1u shl 4
+  PEN_INPUT_BUTTON_5*     = PenInputFlags 1u shl 5
+  PEN_INPUT_ERASER_TIP*   = PenInputFlags 1u shl 30
 
 type
   PenAxis* {.size: cint.sizeof.} = enum
@@ -36,7 +37,7 @@ type
     PEN_AXIS_TANGENTIAL_PRESSURE
 
 const
-  PEN_NUM_AXES* = PenAxis.high.int + 1
+  PEN_AXIS_COUNT* = PenAxis.high.int + 1
     ##  Last valid axis index.
 
 # vim: set sts=2 et sw=2:

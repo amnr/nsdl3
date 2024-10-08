@@ -6,6 +6,8 @@
 
 {.push raises: [].}
 
+from sdl3init import cbool
+
 type
   Joystick* = ptr object
     ##  Joystick.
@@ -35,6 +37,10 @@ type
     JOYSTICK_TYPE_ARCADE_PAD
     JOYSTICK_TYPE_THROTTLE
 
+const
+  JOYSTICK_TYPE_COUNT* = JoystickType.high.int + 1
+
+type
   JoystickConnectionState* {.size: cint.sizeof.} = enum
     ##  Joystick connection state.
     JOYSTICK_CONNECTION_INVALID   = -1
@@ -46,12 +52,10 @@ const
   JOYSTICK_AXIS_MAX*  = 32767
   JOYSTICK_AXIS_MIN*  = -32768
 
-  IPHONE_MAX_GFORCE*  = cfloat 5.0
-
 type
   VirtualJoystickDesc* {.final, pure.} = object
     ##  Extended virtual joystick description.
-    version*      : uint16    ##  `VIRTUAL_JOYSTICK_DESC_VERSION`.
+    version*      : uint32    ##  `VIRTUAL_JOYSTICK_DESC_VERSION`.
     `type`*       : uint16    ##  `JoystickType`.
     naxes*        : uint16    ##  The number of axes.
     nbuttons*     : uint16    ##  The number of buttons.
@@ -62,14 +66,24 @@ type
     button_mask*  : uint32    ##  Valid buttons mask.
     axis_mask*    : uint32    ##  Valid axes mask.
     name*         : cstring   ##  Joystick name.
+    touchpads     : pointer   # XXX: ptr SDL_VirtualJoystickTouchpadDesc.
+    sensors       : pointer   # XXX: ptr SDL_VirtualJoystickSensorDesc.
 
-    userdata        : pointer     ##  User data pointer.
-    Update          : proc (userdata: pointer) {.cdecl, gcsafe, raises: [].}
-    SetPlayerIndex  : proc (userdata: pointer, player_index: cint) {.cdecl, gcsafe, raises: [].}
-    Rumble          : proc (userdata: pointer, low_frequency_rumble, high_frequency_rumble: uint16): cint {.cdecl, gcsafe, raises: [].}
-    RumbleTriggers  : proc (userdata: pointer, left_rumble, right_rumble: uint16): cint {.cdecl, gcsafe, raises: [].}
-    SetLED          : proc (userdata: pointer, red, green, blue: byte): cint {.cdecl, gcsafe, raises: [].}
-    SendEffect      : proc (userdata: pointer, data: pointer, size: cint): cint {.cdecl, gcsafe, raises: [].}
+    userdata          : pointer     ##  User data pointer.
+    Update            : proc (userdata: pointer) {.cdecl, gcsafe, raises: [].}
+    SetPlayerIndex    : proc (userdata: pointer, player_index: cint) {.cdecl, gcsafe, raises: [].}
+    Rumble            : proc (userdata: pointer, low_frequency_rumble, high_frequency_rumble: uint16): cbool {.cdecl, gcsafe, raises: [].}
+    RumbleTriggers    : proc (userdata: pointer, left_rumble, right_rumble: uint16): cbool {.cdecl, gcsafe, raises: [].}
+    SetLED            : proc (userdata: pointer, red, green, blue: byte): cbool {.cdecl, gcsafe, raises: [].}
+    SendEffect        : proc (userdata: pointer, data: pointer, size: cint): cbool {.cdecl, gcsafe, raises: [].}
+    SetSensorsEnabled : proc (userdata: pointer, enabled: cbool): cbool {.cdecl, gcsafe, raises: [].}
+    Cleanup           : proc (userdata: pointer) {.cdecl, gcsafe, raises: [].}
+
+#[
+XXX: SDL_COMPILE_TIME_ASSERT(SDL_VirtualJoystickDesc_SIZE,
+    (sizeof(void *) == 4 && sizeof(SDL_VirtualJoystickDesc) == 84) ||
+    (sizeof(void *) == 8 && sizeof(SDL_VirtualJoystickDesc) == 136));
+]#
 
 const
   VIRTUAL_JOYSTICK_DESC_VERSION*  = 1

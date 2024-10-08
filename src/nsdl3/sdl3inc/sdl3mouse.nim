@@ -37,7 +37,7 @@ type
     SYSTEM_CURSOR_W_RESIZE
 
 const
-  SDL_NUM_SYSTEM_CURSORS* = SystemCursor.high.int + 1
+  SDL_SYSTEM_CURSOR_COUNT* = SystemCursor.high.int + 1
 
 type
   MouseWheelDirection* {.size: cint.sizeof.} = enum
@@ -49,7 +49,7 @@ type
   MouseButtonFlags* = distinct uint32
     ##  Bitmask of pressed mouse buttons.
 
-func button(x: MouseButtonFlags): MouseButtonFlags {.compiletime.} =
+func button_mask(x: MouseButtonFlags): MouseButtonFlags {.compiletime.} =
   MouseButtonFlags 1'u32 shl (x.uint32 - 1)
 
 const
@@ -58,10 +58,10 @@ const
   BUTTON_RIGHT*   = MouseButtonFlags 3
   BUTTON_X1*      = MouseButtonFlags 4
   BUTTON_X2*      = MouseButtonFlags 5
-  BUTTON_LMASK*   = button BUTTON_LEFT
-  BUTTON_MMASK*   = button BUTTON_MIDDLE
-  BUTTON_RMASK*   = button BUTTON_RIGHT
-  BUTTON_X1MASK*  = button BUTTON_X1
-  BUTTON_X2MASK*  = button BUTTON_X2
+  BUTTON_LMASK*   = button_mask BUTTON_LEFT
+  BUTTON_MMASK*   = button_mask BUTTON_MIDDLE
+  BUTTON_RMASK*   = button_mask BUTTON_RIGHT
+  BUTTON_X1MASK*  = button_mask BUTTON_X1
+  BUTTON_X2MASK*  = button_mask BUTTON_X2
 
 # vim: set sts=2 et sw=2:

@@ -64,7 +64,7 @@ template ensure_true(procname: string, body: untyped) =
 
 template ensure_zero*(procname: string, body: untyped) =
   let res {.inject.} = body
-  if unlikely res != 0:
+  if unlikely res.uint == 0:
     log_error procname, " failed: ", $SDL_GetError()
     result = false
   else:

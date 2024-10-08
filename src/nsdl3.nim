@@ -120,11 +120,11 @@ when not declared newSeqUninit:
 # ==  SDL3 library functions                                               == #
 # =========================================================================== #
 
-converter from_sdl_bool(b: SdlBool): bool =
+converter from_sdl_bool(b: cbool): bool =
   b.int != 0
 
-converter to_sdl_bool(b: bool): SdlBool =
-  b.SdlBool
+converter to_sdl_bool(b: bool): cbool =
+  b.cbool
 
 proc c_free(mem: pointer) {.header: "<stdlib.h>", importc: "free", nodecl.}
 
@@ -372,7 +372,7 @@ when use_clipboard:
 # <SDL3/SDL_error.h>                                                          #
 # --------------------------------------------------------------------------- #
 
-proc ClearError*() {.inline.} =
+proc ClearError*(): bool {.discardable, inline.} =
   ##  ```c
   ##  void SDL_ClearError(void)
   ##  ```
@@ -454,7 +454,7 @@ proc PushEvent*(event: var Event): bool {.inline.} =
   ##  ```c
   ##  int SDL_PushEvent(SDL_Event *event)
   ##  ```
-  SDL_PushEvent(event.addr) != 0
+  SDL_PushEvent event.addr
 
 # Uint32 SDL_RegisterEvents(int numevents)
 
@@ -964,7 +964,7 @@ when use_mouse:
     ##  ```c
     ##  int SDL_HideCursor(void)
     ##  ```
-    SDL_HideCursor() != 0
+    SDL_HideCursor()
 
   proc SetCursor*(cursor: Cursor): bool =
     ##  ```c
@@ -982,7 +982,7 @@ when use_mouse:
     ##  ```c
     ##  int SDL_ShowCursor(void)
     ##  ```
-    SDL_ShowCursor() != 0
+    SDL_ShowCursor()
 
   # int SDL_WarpMouseGlobal(float x, float y)
   # void SDL_WarpMouseInWindow(SDL_Window *window, float x, float y)
@@ -1073,8 +1073,13 @@ proc MapRGBA*(format: PixelFormatDetails, palette: Palette,
     var format = format
   SDL_MapRGBA format.addr, palette.addr, r, g, b, a
 
-# int SDL_SetPaletteColors(SDL_Palette *palette, const SDL_Color *colors,
-#     int firstcolor, int ncolors)
+proc SetPaletteColors*(palette: var Palette, colors: openArray[Color],
+                       firstcolor: int = 0, ncolors: int = 0): bool =
+  let ncolors = if ncolors > 0: ncolors else: colors.len - firstcolor
+  ensure_zero "SDL_SetPaletteColors":
+    SDL_SetPaletteColors palette.addr, colors[0].addr, firstcolor.cint,
+                         ncolors.cint
+
 # int SDL_SetPixelFormatPalette(SDL_PixelFormat *format, SDL_Palette *palette)
 
 # --------------------------------------------------------------------------- #
@@ -1225,7 +1230,7 @@ proc CreateWindowAndRenderer*(title: string, width: int, height: int,
   var out_renderer  : Renderer = nil
   if not SDL_CreateWindowAndRenderer(title, width.cint, height.cint,
                                      window_flags, out_window.addr,
-                                     out_renderer.addr) != 0:
+                                     out_renderer.addr):
     echo "SDL_CreateWindowAndRenderer failed: ", GetError()   # XXX: echo
     # XXX: TODO: check whether this function writes anythin on error.
     if out_renderer != nil:
@@ -1302,7 +1307,7 @@ proc LockTexture*(texture: Texture, pixels: var ptr UncheckedArray[byte],
   ##  ```
   var raw_pixels: pointer = nil
   var raw_pitch: cint = 0
-  if SDL_LockTexture(texture, nil, raw_pixels.addr, raw_pitch.addr) != 0:
+  if SDL_LockTexture(texture, nil, raw_pixels.addr, raw_pitch.addr):
     log_error "SDL_LockTexture failed: " & $SDL_GetError()
     return false
   pixels  = cast[ptr UncheckedArray[byte]](raw_pixels)
@@ -1317,7 +1322,7 @@ proc LockTexture*(texture: Texture, pixels: var ptr UncheckedArray[uint16],
   ##  ```
   var raw_pixels: pointer = nil
   var raw_pitch: cint = 0
-  if SDL_LockTexture(texture, nil, raw_pixels.addr, raw_pitch.addr) != 0:
+  if SDL_LockTexture(texture, nil, raw_pixels.addr, raw_pitch.addr):
     log_error "SDL_LockTexture failed: " & $SDL_GetError()
     return false
   pixels  = cast[ptr UncheckedArray[uint16]](raw_pixels)
@@ -1332,7 +1337,7 @@ proc LockTexture*(texture: Texture, pixels: var ptr UncheckedArray[uint32],
   ##  ```
   var raw_pixels: pointer = nil
   var raw_pitch: cint = 0
-  if SDL_LockTexture(texture, nil, raw_pixels.addr, raw_pitch.addr) != 0:
+  if SDL_LockTexture(texture, nil, raw_pixels.addr, raw_pitch.addr):
     log_error "SDL_LockTexture failed: " & $SDL_GetError()
     return false
   pixels  = cast[ptr UncheckedArray[uint32]](raw_pixels)
@@ -1347,7 +1352,7 @@ proc LockTexture*(texture: Texture, rect: Rect, pixels: var UncheckedArray[byte]
   ##  ```
   var raw_pitch: cint = 0
   if SDL_LockTexture(texture, rect.addr, cast[ptr pointer](pixels.addr),
-                     raw_pitch.addr) != 0:
+                     raw_pitch.addr):
     log_error "SDL_LockTexture failed: " & $SDL_GetError()
     return false
   pitch = raw_pitch
@@ -1864,7 +1869,10 @@ proc SetSurfaceColorKey*(surface: SurfacePtr, flag: bool, key: uint32): bool =
     SDL_SetSurfaceColorKey surface, flag, key
 
 # int SDL_SetSurfaceColorMod(SDL_Surface *surface, Uint8 r, Uint8 g, Uint8 b)
-# int SDL_SetSurfacePalette(SDL_Surface *surface, SDL_Palette *palette)
+
+proc SetSurfacePalette*(surface: SurfacePtr, palette: Palette): bool =
+  ensure_zero "SDL_SetSurfacePalette":
+    SDL_SetSurfacePalette surface, palette.addr
 
 proc SetSurfaceRLE*(surface: SurfacePtr, flag: bool): bool =
   ##  XXX.
@@ -2225,7 +2233,7 @@ proc GetDisplayUsableBounds*(display_id: DisplayID, width: var int,
   ##  int SDL_GetDisplayUsableBounds(SDL_DisplayID displayID, SDL_Rect *rect)
   ##  ```
   var bounds = Rect(x: 0, y: 0, w: 0, h: 0)
-  if unlikely SDL_GetDisplayUsableBounds(display_id, bounds.addr) != 0:
+  if unlikely SDL_GetDisplayUsableBounds(display_id, bounds.addr):
     log_error "SDL_GetDisplayUsableBounds failed: ", $SDL_GetError()
     return false
   width   = bounds.w.int
@@ -2402,7 +2410,7 @@ proc GetWindowPosition*(window: Window, x: var int, y: var int): bool =
   ##  int SDL_GetWindowPosition(SDL_Window *window, int *x, int *y)
   ##  ```
   var outx, outy: cint = 0
-  if SDL_GetWindowPosition(window, outx.addr, outy.addr) != 0:
+  if SDL_GetWindowPosition(window, outx.addr, outy.addr):
     log_error "SDL_GetWindowPosition failed: ", $SDL_GetError()
     return false
   x = outx
@@ -2418,7 +2426,7 @@ proc GetWindowSize*(window: Window, w, h: var int): bool =
   ##  int SDL_GetWindowSize(SDL_Window *window, int *w, int *h)
   ##  ```
   var outw, outh: cint = 0
-  if SDL_GetWindowSize(window, outw.addr, outh.addr) != 0:
+  if SDL_GetWindowSize(window, outw.addr, outh.addr):
     log_error "SDL_GetWindowSize failed: ", $SDL_GetError()
     return false
   w = outw
@@ -2707,6 +2715,13 @@ proc FreeSurface*(surface: SurfacePtr) {.deprecated: "use DestroySurface instead
 # =========================================================================== #
 # ==  Helper functions                                                     == #
 # =========================================================================== #
+
+proc GetVersionString*(): string =
+  let ver = GetVersion()
+  let major = ver div 1000_000
+  let minor = ver div 1000 mod 1000
+  let patch = ver mod 1000
+  $major & '.' & $minor & '.' & $patch
 
 proc sdl3_avail*(flags = INIT_VIDEO): bool =
   result = Init flags

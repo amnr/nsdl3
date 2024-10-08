@@ -18,6 +18,7 @@ type
     LOG_CATEGORY_RENDER
     LOG_CATEGORY_INPUT
     LOG_CATEGORY_TEST
+    LOG_CATEGORY_GPU
 
     LOG_CATEGORY_RESERVED1
     LOG_CATEGORY_RESERVED2
@@ -34,13 +35,19 @@ type
 
   LogPriority* {.size: cint.sizeof.} = enum
     ##  Log priority.
-    LOG_PRIORITY_VERBOSE = 1
+    LOG_PRIORITY_INVALID
+    LOG_PRIORITY_TRACE
+    LOG_PRIORITY_VERBOSE
     LOG_PRIORITY_DEBUG
     LOG_PRIORITY_INFO
     LOG_PRIORITY_WARN
     LOG_PRIORITY_ERROR
     LOG_PRIORITY_CRITICAL
 
+const
+  LOG_PRIORITY_COUNT* = LogPriority.high.int + 1
+
+type
   LogOutputFunction* = proc (userdata: pointer, category: LogCategory,
                              priority: LogPriority,
                              message: cstring) {.cdecl, gcsafe, raises: [].}

@@ -19,6 +19,9 @@ const
   use_clipboard*  {.booldefine: "sdl3.clipboard"  .}  = true or ndoc
     ##  Include clipboard functions.
 
+  use_dialog*     {.booldefine: "sdl3.dialog"     .}  = true or ndoc
+    ##  Include dialog functions.
+
   use_gamepad*    {.booldefine: "sdl3.gamepad"    .}  = true or ndoc
     ##  Include gamepad functions.
 

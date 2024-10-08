@@ -8,22 +8,17 @@
 
 from sdl3audio import AudioDeviceID
 from sdl3camera import CameraDeviceID
-from sdl3init import SdlBool
+from sdl3init import cbool
 from sdl3joystick import Hat, JoystickID
 from sdl3keyboard import KeyboardID
 from sdl3keycode import Keycode, Keymod
 from sdl3mouse import MouseButtonFlags, MouseID, MouseWheelDirection
-from sdl3pen import PenAxis, PenID, PenInputFlags, PEN_NUM_AXES
+from sdl3pen import PenAxis, PenID, PenInputFlags, PEN_AXIS_COUNT
 from sdl3power import PowerState
 from sdl3scancode import Scancode
 from sdl3sensor import SensorID
 from sdl3touch import FingerID, TouchID
 from sdl3video import DisplayID, WindowID
-
-# General keyboard/mouse state definitions.
-const
-  RELEASED* = 0
-  PRESSED*  = 1
 
 type
   EventType* {.pure, size: uint32.sizeof.} = enum
@@ -232,8 +227,8 @@ type
     key*          : Keycode
     `mod`*        : Keymod
     raw*          : uint16
-    state*        : byte        ##  `PRESSED` or `RELEASED`.
-    repeat*       : byte        ##  Non-zero if key repeat.
+    down*         : cbool       ##  True if the key is pressed.
+    repeat*       : cbool       ##  True if this is a key repeat.
 
   TextEditingEvent* {.final, pure.} = object
     ##  Keyboard text editing event.
@@ -256,7 +251,10 @@ type
     candidates*         : cstringArray  ##  The list of candidates or `nil`.
     num_candidates*     : int32
     selected_candidate* : int32
-    horizontal*         : SdlBool
+    horizontal*         : cbool
+    padding1            : byte
+    padding2            : byte
+    padding3            : byte
 
   TextInputEvent* {.final, pure.} = object
     ##  Keyboard text input event.
@@ -296,7 +294,7 @@ type
     window_id*    : WindowID    ##  Window with mouse focus (if any).
     which*        : MouseID     ##  Mouse instance ID or `SDL_TOUCH_MOUSEID`.
     button*       : byte        ##  Mouse button index.
-    state*        : byte        ##  `PRESSED` or `RELEASED`.
+    down*         : cbool       ##  True if the button is pressed.
     clicks*       : byte        ##  Single click (1), double click (2), etc.
     padding       : byte
     x*            : cfloat      ##  X position.
@@ -361,7 +359,7 @@ type
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
     button*       : byte        ##  Joystick button index.
-    state*        : byte        ##  `PRESSED` or `RELEASED`.
+    down*         : cbool       ##  True if the button is pressed.
     padding1      : byte
     padding2      : byte
 
@@ -401,7 +399,7 @@ type
     timestamp*    : uint64      ##  Timestamp (ns).
     which*        : JoystickID  ##  Joystick ID.
     button*       : byte        ##  Joystick button (`GameControllerButton`).
-    state*        : byte        ##  `PRESSED` or `RELEASED`.
+    down*         : cbool       ##  True if the button is pressed.
     padding1      : byte
     padding2      : byte
 
@@ -448,7 +446,7 @@ type
     which*        : AudioDeviceID   ##  Audio device index for the `ADDED` event.
                                     ##  (valid until next `get_num_audio_devices()
                                     ##  call) or `AudioDeviceID` for the `REMOVED` event.
-    recording*    : byte            ##  Playback device (0) or recording device (non-zero).
+    recording*    : cbool           ##  Playback device (false) or recording device (true).
     padding1      : byte
     padding2      : byte
     padding3      : byte
@@ -490,8 +488,8 @@ type
     window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
     pen_state*    : PenInputFlags   ##  Complete pen input state at time of event.
-    x*            : cfloat      ##  X position.
-    y*            : cfloat      ##  Y position.
+    x*            : cfloat      ##  X position, relative to window.
+    y*            : cfloat      ##  Y position, relative to window.
 
   PenTouchEvent* {.final, pure.} = object
     ##  Pressure-sensitive pen touched event.
@@ -501,10 +499,10 @@ type
     window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
     pen_state*    : PenInputFlags   ##  Complete pen input state at time of event.
-    x*            : cfloat      ##  X position.
-    y*            : cfloat      ##  Y position.
-    eraser*       : byte        ##  Non-zero if eraser end is used.
-    state*        : byte        ##  `PRESSED` or `RELEASED`.
+    x*            : cfloat      ##  X position, relative to window.
+    y*            : cfloat      ##  Y position, relative to window.
+    eraser*       : cbool       ##  True is eraser end is used. Not supported by all pens.
+    down*         : cbool       ##  True if the pen is touching or false if the pen is lifted off.
 
   PenButtonEvent* {.final, pure.} = object
     ##  Pressure-sensitive pen button event.
@@ -514,10 +512,10 @@ type
     window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
     pen_state*    : PenInputFlags   ##  Complete pen input state at time of event.
-    x*            : cfloat      ##  X position.
-    y*            : cfloat      ##  Y position.
+    x*            : cfloat      ##  X position, relative to window.
+    y*            : cfloat      ##  Y position, relative to window.
     button*       : byte        ##  The pen button index (first button is 1).
-    state*        : byte        ##  `PRESSED` or `RELEASED`.
+    down*         : cbool       ##  True if the button is pressed.
 
   PenAxisEvent* {.final, pure.} = object
     ##  Pressure-sensitive pen pressure / angle event.
@@ -527,8 +525,8 @@ type
     window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
     pen_state*    : PenInputFlags   ##  Complete pen input state at time of event.
-    x*            : cfloat      ##  X position.
-    y*            : cfloat      ##  Y position.
+    x*            : cfloat      ##  X position, relative to window.
+    y*            : cfloat      ##  Y position, relative to window.
     axis*         : PenAxis     ##  Axis that has changed.
     value*        : cfloat      ##  New value of axis.
 
@@ -541,16 +539,19 @@ type
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
     window_id*    : WindowID    ##  Window ID file was dropped on (if any).
-    x*            : cfloat      ##  X position.
-    y*            : cfloat      ##  Y position.
+    x*            : cfloat      ##  X position, relative to window.
+    y*            : cfloat      ##  Y position, relative to window.
     source*       : cstring     ##  The source app that sent this drop event, or `nil` if that isn't available.
     dest*         : cstring     ##  The text for `EVENT_DROP_TEXT` and the file name for `EVENT_DROP_FILE`, `nil` for other events.
 
   ClipboardEvent* {.final, pure.} = object
     ##  Clipboard contents have changed.
-    typ*          : EventType   ##  `EVENT_CLIPBOARD_UPDATE`.
+    typ*          : EventType     ##  `EVENT_CLIPBOARD_UPDATE`.
     reserved      : uint32
-    timestamp*    : uint64      ##  Timestamp (ns).
+    timestamp*    : uint64        ##  Timestamp (ns).
+    owner*        : cbool
+    n_mime_types* : int32         ##  Number of mime types.
+    mime_types*   : cstringArray  ##  Mime types.
 
   SensorEvent* {.final, pure.} = object
     ##  Sensor event.
@@ -634,7 +635,7 @@ type
 
 type
   EventFilter* = proc (userdata : pointer,
-                       event    : ptr Event): SdlBool {.cdecl, raises: [].}
+                       event    : ptr Event): cbool {.cdecl, raises: [].}
     ##  A function pointer used for callbacks that watch the event queue.
 
 # ============================================================================ #

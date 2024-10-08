@@ -34,7 +34,6 @@ type
     ##  Textture scaling mode.
     SCALEMODE_NEAREST     ##  Nearest pixel sampling.
     SCALEMODE_LINEAR      ##  Linear filtering.
-    SCALEMODE_BEST        ##  Anisotropic filtering.
 
   FlipMode* {.size: cint.sizeof.} = enum
     ##  The flip mode.

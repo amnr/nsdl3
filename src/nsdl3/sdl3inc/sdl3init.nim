@@ -7,7 +7,7 @@
 {.push raises: [].}
 
 type
-  SdlBool* = distinct cuint
+  cbool* = distinct byte
 
 type
   InitFlags* = distinct uint32
@@ -17,7 +17,6 @@ func `or`*(a, b: InitFlags): InitFlags {.borrow.}
 
 const
   INIT_NONE*      = InitFlags 0x0000_0000   ##  Nim specific.
-  INIT_TIMER*     = InitFlags 0x0000_0001
   INIT_AUDIO*     = InitFlags 0x0000_0010   ##  Implies `INIT_EVENTS`.
   INIT_VIDEO*     = InitFlags 0x0000_0020   ##  Implies `INIT_EVENTS`.
   INIT_JOYSTICK*  = InitFlags 0x0000_0200   ##  Implies `INIT_EVENTS`.
@@ -37,8 +36,8 @@ type
 type
   AppInit_func* = proc (appstate: ptr pointer, argc: cint, argv: cstringArray): AppResult {.cdecl.}
   AppIterate_func* = proc (appstate: pointer): AppResult {.cdecl.}
-  # XXX: circular dep: AppEvent_func* = proc (appstate: pointer, event: ptr Event): AppResult {.cdecl.}
-  AppQuit_func* = proc (appstate: pointer) {.cdecl.}
+  # XXX: AppEvent_func* = proc (appstate: pointer, event: ptr Event): AppResult {.cdecl.}
+  AppQuit_func* = proc (appstate: pointer, res: AppResult) {.cdecl.}
 
 type
   AppMetadataProperty* = enum

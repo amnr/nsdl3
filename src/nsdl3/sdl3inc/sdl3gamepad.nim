@@ -25,7 +25,7 @@ type
     GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR
 
 const
-  GAMEPAD_TYPE_MAX* = GamepadType.high.int + 1
+  GAMEPAD_TYPE_COUNT* = GamepadType.high.int + 1
 
 type
   GamepadButton* {.size: cint.sizeof.} = enum   # XXX: size.
@@ -59,7 +59,7 @@ type
     GAMEPAD_BUTTON_MISC6
 
 const
-  GAMEPAD_BUTTON_MAX* = GamepadButton.high.int + 1
+  GAMEPAD_BUTTON_COUNT* = GamepadButton.high.int + 1
 
 type
   GamepadButtonLabel* {.size: cint.sizeof.} = enum
@@ -86,7 +86,7 @@ type
     GAMEPAD_AXIS_RIGHT_TRIGGER
 
 const
-  GAMEPAD_AXIS_MAX* = GamepadAxis.high.int + 1
+  GAMEPAD_AXIS_COUNT* = GamepadAxis.high.int + 1
 
 type
   GamepadBindingType* {.size: cint.sizeof.} = enum

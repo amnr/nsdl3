@@ -287,6 +287,6 @@ const
   SCANCODE_RESERVED*              = Scancode 400
 
 const
-  NUM_SCANCODES*  = 512
+  SCANCODE_COUNT*  = 512
 
 # vim: set sts=2 et sw=2:

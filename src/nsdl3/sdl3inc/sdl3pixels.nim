@@ -8,8 +8,12 @@
 
 # Transparency definitions.
 const
-  ALPHA_OPAQUE*       = byte 255
-  ALPHA_TRANSPARENT*  = byte 0
+  ALPHA_OPAQUE*             = byte 255
+  ALPHA_OPAQUE_FLOAT*       = cfloat 1.0
+
+const
+  ALPHA_TRANSPARENT*        = byte 0
+  ALPHA_TRANSPARENT_FLOAT*  = cfloat 0.0
 
 type
   PixelType {.size: cint.sizeof.} = enum

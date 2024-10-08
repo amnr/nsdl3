@@ -49,12 +49,12 @@ type
     MESSAGEBOX_COLOR_BUTTON_SELECTED
 
 const
-  MESSAGEBOX_COLOR_MAX = MessageBoxColorType.high.int + 1
+  MESSAGEBOX_COLOR_COUNT* = MessageBoxColorType.high.int + 1
 
 type
   MessageBoxColorScheme* {.final, pure.} = object
     ##  Colors for message box dialogs.
-    colors*       : array[MESSAGEBOX_COLOR_MAX, MessageBoxColor]
+    colors*       : array[MESSAGEBOX_COLOR_COUNT, MessageBoxColor]
 
   MessageBoxData* {.final, pure.} = object
     ##  MessageBox data.

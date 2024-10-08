@@ -16,6 +16,8 @@ when use_blendmode:
   import sdl3inc/sdl3blendmode
 when use_clipboard:
   import sdl3inc/sdl3clipboard
+when use_dialog:
+  import sdl3inc/sdl3dialog
 import sdl3inc/sdl3events
 # XXX: gamepad
 # XXX: haptic
@@ -74,10 +76,10 @@ dlgencalls "sdl3", lib_paths:
 
   when use_audio:
 
-    # int SDL_BindAudioStream(SDL_AudioDeviceID devid, SDL_AudioStream *stream)
-    # int SDL_BindAudioStreams(SDL_AudioDeviceID devid,
+    # bool SDL_BindAudioStream(SDL_AudioDeviceID devid, SDL_AudioStream *stream)
+    # bool SDL_BindAudioStreams(SDL_AudioDeviceID devid,
     #     proc SDL_AudioStream **streams, int num_streams)
-    # int SDL_ClearAudioStream(SDL_AudioStream *stream)
+    # bool SDL_ClearAudioStream(SDL_AudioStream *stream)
     # void SDL_CloseAudioDevice(SDL_AudioDeviceID devid)
 
     proc SDL_ConvertAudioSamples(
@@ -87,7 +89,7 @@ dlgencalls "sdl3", lib_paths:
       dst_spec  : ptr AudioSpec,
       dst_data  : ptr ptr byte,
       dst_len   : ptr cint
-    ): cint
+    ): cbool
 
     proc SDL_CreateAudioStream(
       src_spec  : ptr AudioSpec,
@@ -100,9 +102,9 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_FlushAudioStream(
       stream    : AudioStream
-    ): cint
+    ): cbool
 
-    # int SDL_GetAudioDeviceFormat(SDL_AudioDeviceID devid,
+    # bool SDL_GetAudioDeviceFormat(SDL_AudioDeviceID devid,
     #     proc SDL_AudioSpec *spec, int *sample_frames)
 
     proc SDL_GetAudioDeviceName(
@@ -131,7 +133,7 @@ dlgencalls "sdl3", lib_paths:
       stream    : AudioStream
     ): AudioDeviceID
 
-    # int SDL_GetAudioStreamFormat(SDL_AudioStream *stream,
+    # bool SDL_GetAudioStreamFormat(SDL_AudioStream *stream,
     #     proc SDL_AudioSpec *src_spec, SDL_AudioSpec *dst_spec)
 
     # float SDL_GetAudioStreamFrequencyRatio(SDL_AudioStream *stream)
@@ -144,12 +146,12 @@ dlgencalls "sdl3", lib_paths:
 
     # int SDL_GetSilenceValueForFormat(SDL_AudioFormat format)
     # SDL_bool SDL_AudioDevicePaused(SDL_AudioDeviceID dev)
-    # int SDL_LoadWAV(const char *path, SDL_AudioSpec *spec, Uint8 **audio_buf,
+    # bool SDL_LoadWAV(const char *path, SDL_AudioSpec *spec, Uint8 **audio_buf,
     #     Uint32 *audio_len)
-    # int SDL_LoadWAV_IO(SDL_IOStream * src, SDL_bool closeio,
+    # bool SDL_LoadWAV_IO(SDL_IOStream * src, bool closeio,
     #     SDL_AudioSpec * spec, Uint8 ** audio_buf, Uint32 * audio_len);
-    # int SDL_LockAudioStream(SDL_AudioStream *stream)
-    # int SDL_MixAudioFormat(Uint8 *dst, const Uint8 *src,
+    # bool SDL_LockAudioStream(SDL_AudioStream *stream)
+    # bool SDL_MixAudioFormat(Uint8 *dst, const Uint8 *src,
     #     proc SDL_AudioFormat format, Uint32 len, int volume)
     # SDL_AudioDeviceID SDL_OpenAudioDevice(SDL_AudioDeviceID devid,
     #     const SDL_AudioSpec *spec)
@@ -163,31 +165,39 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_PauseAudioDevice(
       dev       : AudioDeviceID
-    ): cint
+    ): cbool
+
+    # bool SDL_PauseAudioStreamDevice(SDL_AudioStream *stream)
 
     proc SDL_PutAudioStreamData(
       stream    : AudioStream,
       buf       : pointer,
       len       : cint
-    ): cint
+    ): cbool
 
     proc SDL_ResumeAudioDevice(
       dev       : AudioDeviceID
-    ): cint
+    ): cbool
 
-    # int SDL_SetAudioPostmixCallback(SDL_AudioDeviceID devid,
+    # bool SDL_ResumeAudioStreamDevice(SDL_AudioStream *stream)
+
+    # bool SDL_SetAudioDeviceGain(SDL_AudioDeviceID devid, float gain)
+    # bool SDL_SetAudioPostmixCallback(SDL_AudioDeviceID devid,
     #     proc SDL_AudioPostmixCallback callback, void *userdata)
-    # int SDL_SetAudioStreamFormat(SDL_AudioStream *stream,
+    # bool SDL_SetAudioStreamFormat(SDL_AudioStream *stream,
     #     const SDL_AudioSpec *src_spec, const SDL_AudioSpec *dst_spec)
-    # int SDL_SetAudioStreamFrequencyRatio(SDL_AudioStream *stream,
+    # bool SDL_SetAudioStreamFrequencyRatio(SDL_AudioStream *stream,
     #     float ratio)
-    # int SDL_SetAudioStreamGetCallback(SDL_AudioStream *stream,
+    # bool SetAudioStreamGain(SDL_AudioStream *stream, float gain)
+    # bool SDL_SetAudioStreamGetCallback(SDL_AudioStream *stream,
     #     proc SDL_AudioStreamCallback callback, void *userdata)
-    # int SDL_SetAudioStreamPutCallback(SDL_AudioStream *stream,
+    # bool SDL_SetAudioStreamInputChannelMap(SDL_AudioStream *stream, const int *chmap, int count)
+    # bool SDL_SetAudioStreamOutputChannelMap(SDL_AudioStream *stream, const int *chmap, int count)
+    # bool SDL_SetAudioStreamPutCallback(SDL_AudioStream *stream,
     #     proc SDL_AudioStreamCallback callback, void *userdata)
     # void SDL_UnbindAudioStream(SDL_AudioStream *stream)
     # void SDL_UnbindAudioStreams(SDL_AudioStream **streams, int num_streams)
-    # int SDL_UnlockAudioStream(SDL_AudioStream *stream)
+    # bool SDL_UnlockAudioStream(SDL_AudioStream *stream)
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_blendmode.h>                                                    #
@@ -229,22 +239,24 @@ dlgencalls "sdl3", lib_paths:
 
   when use_clipboard:
 
-    proc SDL_ClearClipboardData(): cint
+    proc SDL_ClearClipboardData(): cbool
 
     proc SDL_GetClipboardData(
       mime_type : cstring,
       size      : ptr csize_t
     ): pointer
 
+    # char ** SDL_GetClipboardMimeTypes(size_t *num_mime_types)
+
     # char *SDL_GetClipboardText(void)
     # char *SDL_GetPrimarySelectionText(void)
 
     proc SDL_HasClipboardData(
       mime_type : cstring
-    ): SdlBool
+    ): cbool
 
-    # SDL_bool SDL_HasClipboardText(void)
-    # SDL_bool SDL_HasPrimarySelectionText(void)
+    # bool SDL_HasClipboardText(void)
+    # bool SDL_HasPrimarySelectionText(void)
 
     proc SDL_SetClipboardData(
       callback        : ClipboardDataCallback,
@@ -252,45 +264,65 @@ dlgencalls "sdl3", lib_paths:
       userdata        : pointer,
       mime_types      : ptr cstring,
       num_mime_types  : csize_t
-    ): cint
+    ): cbool
 
-    # int SDL_SetClipboardText(const char *text)
-    # int SDL_SetPrimarySelectionText(const char *text)
+    # bool SDL_SetClipboardText(const char *text)
+    # bool SDL_SetPrimarySelectionText(const char *text)
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_dialog.h>                                                       #
   # ------------------------------------------------------------------------- #
 
-  # void SDL_ShowOpenFileDialog(SDL_DialogFileCallback callback,
-  #   void *userdata, SDL_Window *window, const SDL_DialogFileFilter *filters,
-  #   const char *default_location, SDL_bool allow_many);
-  # void SDL_ShowOpenFolderDialog(SDL_DialogFileCallback callback,
-  #   void *userdata, SDL_Window *window, const char *default_location,
-  #   SDL_bool allow_many);
-  # void SDL_ShowSaveFileDialog(SDL_DialogFileCallback callback,
-  #   void *userdata, SDL_Window *window, const SDL_DialogFileFilter *filters,
-  #   const char *default_location);
+  when use_dialog:
+
+    proc SDL_ShowOpenFileDialog(
+      callback          : DialogFileCallback,
+      userdata          : pointer,
+      window            : Window,
+      filters           : ptr DialogFileFilter,
+      nfilters          : cint,
+      default_location  : cstring,
+      allow_many        : cbool
+    )
+
+    proc SDL_ShowOpenFolderDialog(
+      callback          : DialogFileCallback,
+      userdata          : pointer,
+      window            : Window,
+      default_location  : cstring,
+      allow_many        : cbool
+    )
+
+    proc SDL_ShowSaveFileDialog(
+      callback          : DialogFileCallback,
+      userdata          : pointer,
+      window            : Window,
+      filters           : ptr DialogFileFilter,
+      nfilters          : cint,
+      default_location  : cstring
+    )
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_error.h>                                                        #
   # ------------------------------------------------------------------------- #
 
-  proc SDL_ClearError()
+  proc SDL_ClearError(): cbool
 
-  # int SDL_Error(SDL_errorcode code)
+  # int SDL_Error(SDL_errorcode code)   XXX: ???
 
   proc SDL_GetError(): cstring
 
-  # int SDL_SetError(const char *fmt, ...)
+  # bool SDL_OutOfMemory(void)
+  # bool SDL_SetError(const char *fmt, ...)
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_events.h>                                                       #
   # ------------------------------------------------------------------------- #
 
-  # int SDL_AddEventWatch(SDL_EventFilter filter, void *userdata)
+  # bool SDL_AddEventWatch(SDL_EventFilter filter, void *userdata)
   # void *SDL_AllocateEventMemory(size_t size)
   # void SDL_DelEventWatch(SDL_EventFilter filter, void *userdata)
-  # SDL_bool SDL_EventEnabled(Uint32 type)
+  # bool SDL_EventEnabled(Uint32 type)
 
   proc SDL_FilterEvents(filter    : EventFilter,
                         userdata  : pointer)
@@ -300,10 +332,10 @@ dlgencalls "sdl3", lib_paths:
   proc SDL_FlushEvents(min_type : EventType,
                        max_type : EventType)
 
-  # SDL_bool SDL_GetEventFilter(SDL_EventFilter *filter, void **userdata)
+  # bool SDL_GetEventFilter(SDL_EventFilter *filter, void **userdata)
   # SDL_Window * SDL_GetWindowFromEvent(const SDL_Event *event)
-  # SDL_bool SDL_HasEvent(Uint32 type)
-  # SDL_bool SDL_HasEvents(Uint32 minType, Uint32 maxType)
+  # bool SDL_HasEvent(Uint32 type)
+  # bool SDL_HasEvents(Uint32 minType, Uint32 maxType)
 
   proc SDL_PeepEvents(event     : ptr Event,
                       numevents : cint,
@@ -311,21 +343,23 @@ dlgencalls "sdl3", lib_paths:
                       min_type  : EventType,
                       max_type  : EventType): cint
 
-  proc SDL_PollEvent(event: ptr Event): SdlBool
+  proc SDL_PollEvent(event: ptr Event): cbool
 
   proc SDL_PumpEvents()
 
-  proc SDL_PushEvent(event: ptr Event): cint
+  proc SDL_PushEvent(event: ptr Event): cbool
 
   # Uint32 SDL_RegisterEvents(int numevents)
 
-  proc SDL_SetEventEnabled(typ: uint32, enabled: SdlBool)
+  # void SDL_RemoveEventWatch(SDL_EventFilter filter, void *userdata)
+
+  proc SDL_SetEventEnabled(typ: uint32, enabled: cbool)
 
   # void SDL_SetEventFilter(SDL_EventFilter filter, void *userdata)
 
-  proc SDL_WaitEvent(event: ptr Event): SdlBool
+  proc SDL_WaitEvent(event: ptr Event): cbool
 
-  proc SDL_WaitEventTimeout(event: ptr Event, timeout_ms: int32): SdlBool
+  proc SDL_WaitEventTimeout(event: ptr Event, timeout_ms: int32): cbool
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_gamepad.h>                                                      #
@@ -351,7 +385,7 @@ dlgencalls "sdl3", lib_paths:
 
   when use_hints:
 
-    # int SDL_AddHintCallback(const char *name, SDL_HintCallback callback,
+    # bool SDL_AddHintCallback(const char *name, SDL_HintCallback callback,
     #     void *userdata)
     # void SDL_ClearHints(void)
     # void SDL_DelHintCallback(const char *name, SDL_HintCallback callback,
@@ -359,13 +393,14 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_GetHint(name: HintName): cstring
 
-    # SDL_bool SDL_GetHintBoolean(const char *name, SDL_bool default_value)
-    # int SDL_ResetHint(const char *name)
-    # void SDL_ResetHints(void)
+    # bool SDL_GetHintBoolean(const char *name, bool default_value)
+    # void SDLCALL SDL_RemoveHintCallback(const char *name, SDL_HintCallback callback, void *userdata)
+    # bool SDL_ResetHint(const char *name)
+    # bool SDL_ResetHints(void)
 
-    proc SDL_SetHint(name: cstring, value: cstring): cint
+    proc SDL_SetHint(name: cstring, value: cstring): cbool
 
-    # int SDL_SetHintWithPriority(const char *name, const char *value,
+    # bool SDL_SetHintWithPriority(const char *name, const char *value,
     #     proc SDL_HintPriority priority)
 
   # ------------------------------------------------------------------------- #
@@ -374,17 +409,17 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_GetAppMetadataProperty(name: AppMetadataProperty): cstring
 
-  proc SDL_Init(flags: InitFlags): cint
+  proc SDL_Init(flags: InitFlags): cbool
 
-  proc SDL_InitSubSystem(flags: InitFlags): cint
+  proc SDL_InitSubSystem(flags: InitFlags): cbool
 
   proc SDL_Quit()
 
   proc SDL_QuitSubSystem(flags: InitFlags)
   
-  proc SDL_SetAppMetadata(appname, appversion, appidentifier: cstring): cint
+  proc SDL_SetAppMetadata(appname, appversion, appidentifier: cstring): cbool
 
-  proc SDL_SetAppMetadataProperty(name: AppMetadataProperty, value: cstring): cint
+  proc SDL_SetAppMetadataProperty(name: AppMetadataProperty, value: cstring): cbool
 
   proc SDL_WasInit(flags: InitFlags): InitFlags
 
@@ -424,7 +459,7 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_GetNumJoystickHats(joystick: Joystick): cint
 
-    # proc SDL_HasJoystick(): SdlBool
+    # proc SDL_HasJoystick(): cbool
 
     proc SDL_OpenJoystick(instance_id: JoystickID): Joystick
 
@@ -444,13 +479,14 @@ dlgencalls "sdl3", lib_paths:
     # SDL_Joystick *SDL_GetJoystickFromPlayerIndex(int player_index)
     # SDL_JoystickID SDL_AttachVirtualJoystick(SDL_JoystickType type,
     # SDL_JoystickID SDL_AttachVirtualJoystickEx(const SDL_VirtualJoystickDesc *desc)
-    # int SDL_DetachVirtualJoystick(SDL_JoystickID instance_id)
-    # SDL_bool SDL_IsJoystickVirtual(SDL_JoystickID instance_id)
-    # int SDL_SetJoystickVirtualAxis(joystick: Joystick, int axis, Sint16 value)
-    # int SDL_SetJoystickVirtualButton(joystick: Joystick, int button, Uint8 value)
-    # int SDL_SetJoystickVirtualHat(joystick: Joystick, int hat, Uint8 value)
-    # int SDL_GetJoystickPlayerIndex(joystick: Joystick)
-    # int SDL_SetJoystickPlayerIndex(joystick: Joystick, int player_index)
+    # bool SDL_DetachVirtualJoystick(SDL_JoystickID instance_id)
+    # bool SDL_IsJoystickVirtual(SDL_JoystickID instance_id)
+    # bool SDL_SetJoystickVirtualAxis(joystick: Joystick, int axis, Sint16 value)
+    # bool SDL_SetJoystickVirtualBall(SDL_Joystick *joystick, int ball, Sint16 xrel, Sint16 yrel)
+    # bool SDL_SetJoystickVirtualButton(joystick: Joystick, int button, Uint8 value)
+    # bool SDL_SetJoystickVirtualHat(joystick: Joystick, int hat, Uint8 value)
+    # bool SDL_GetJoystickPlayerIndex(joystick: Joystick)
+    # bool SDL_SetJoystickPlayerIndex(joystick: Joystick, int player_index)
     # Uint16 SDL_GetJoystickProductVersion(joystick: Joystick)
     # Uint16 SDL_GetJoystickFirmwareVersion(joystick: Joystick)
     # int SDL_GetJoystickGUIDString(SDL_JoystickGUID guid, char *pszGUID, int cbGUID)
@@ -499,6 +535,7 @@ dlgencalls "sdl3", lib_paths:
 
   # void SDL_LogMessageV(int category, SDL_LogPriority priority,
   #                      const char *fmt, va_list ap)
+  # void SDL_LogTrace(int category, const char *fmt, ...) SDL_PRINTF_VARARG_FUNC(2)
   # void SDL_ResetLogPriorities(void)
 
   proc SDL_SetLogOutputFunction(callback: LogOutputFunction, userdata: pointer)
@@ -507,7 +544,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_SetLogPriority(category: LogCategory, priority: LogPriority)
 
-  # int SDL_SetLogPriorityPrefix(SDL_LogPriority priority, const char *prefix)
+  # bool SDL_SetLogPriorityPrefix(SDL_LogPriority priority, const char *prefix)
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_main.h>                                                         #
@@ -522,10 +559,10 @@ dlgencalls "sdl3", lib_paths:
   when use_messagebox:
 
     proc SDL_ShowMessageBox(messageboxdata: ptr MessageBoxData,
-                            buttonid: ptr cint): cint
+                            buttonid: ptr cint): cbool
 
     proc SDL_ShowSimpleMessageBox(flags: MessageBoxFlags, title: cstring,
-                                  message: cstring, window: Window): cint
+                                  message: cstring, window: Window): cbool
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_mouse.h>                                                        #
@@ -533,7 +570,7 @@ dlgencalls "sdl3", lib_paths:
 
   when use_mouse:
 
-    proc SDL_CaptureMouse(enabled: SdlBool): cint
+    proc SDL_CaptureMouse(enabled: cbool): cbool
 
     proc SDL_CreateColorCursor(surface: SurfacePtr,
                                hot_x, hot_y: cint): Cursor
@@ -543,7 +580,7 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_CreateSystemCursor(id: SystemCursor): Cursor
 
-    proc SDL_CursorVisible(): SdlBool
+    proc SDL_CursorVisible(): cbool
 
     proc SDL_DestroyCursor(cursor: Cursor)
 
@@ -561,21 +598,21 @@ dlgencalls "sdl3", lib_paths:
 
     proc SDL_GetMouseState(x, y: ptr cfloat): MouseButtonFlags
 
-    proc SDL_GetWindowRelativeMouseMode(window: Window): SdlBool
+    proc SDL_GetWindowRelativeMouseMode(window: Window): cbool
 
     # MouseButtonFlags SDL_GetRelativeMouseState(float *x, float *y)
 
-    proc SDL_HasMouse(): SdlBool
+    proc SDL_HasMouse(): cbool
 
-    proc SDL_HideCursor(): cint
+    proc SDL_HideCursor(): cbool
 
-    proc SDL_SetCursor(cursor: Cursor): cint
+    proc SDL_SetCursor(cursor: Cursor): cbool
 
-    proc SDL_SetWindowRelativeMouseMode(window: Window, enabled: SdlBool): cint
+    proc SDL_SetWindowRelativeMouseMode(window: Window, enabled: cbool): cbool
 
-    proc SDL_ShowCursor(): cint
+    proc SDL_ShowCursor(): cbool
 
-    # int SDL_WarpMouseGlobal(float x, float y)
+    # bool SDL_WarpMouseGlobal(float x, float y)
     # void SDL_WarpMouseInWindow(SDL_Window *window, float x, float y)
 
   # ------------------------------------------------------------------------- #
@@ -609,7 +646,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_DestroyPalette(palette: ptr Palette)
 
-  # SDL_bool SDL_GetMasksForPixelFormatEnum(SDL_PixelFormatEnum format, int *bpp,
+  # bool SDL_GetMasksForPixelFormatEnum(SDL_PixelFormatEnum format, int *bpp,
   #     Uint32 *Rmask, Uint32 *Gmask, Uint32 *Bmask, Uint32 *Amask)
 
   proc SDL_GetPixelFormatDetails(
@@ -652,7 +689,7 @@ dlgencalls "sdl3", lib_paths:
     colors      : ptr Color,
     firstcolor  : cint,
     ncolors     : cint
-  ): cint
+  ): cbool
 
   # int SDL_SetPixelFormatPalette(SDL_PixelFormat *format,
   #     proc SDL_Palette *palette)
@@ -663,7 +700,7 @@ dlgencalls "sdl3", lib_paths:
 
   when use_properties:
 
-    # int SDL_CopyProperties(SDL_PropertiesID src, SDL_PropertiesID dst)
+    # bool SDL_CopyProperties(SDL_PropertiesID src, SDL_PropertiesID dst)
 
     proc SDL_CreateProperties(): PropertiesID
 
@@ -673,25 +710,25 @@ dlgencalls "sdl3", lib_paths:
       props     : PropertiesID,
       callback  : EnumeratePropertiesCallback,
       userdata  : pointer
-    ): cint
+    ): cbool
 
     proc SDL_SetBooleanProperty(
       props     : PropertiesID,
       name      : cstring,
-      value     : SdlBool
-    ): cint
+      value     : cbool
+    ): cbool
 
     proc SDL_SetFloatProperty(
       props     : PropertiesID,
       name      : cstring,
       value     : cfloat
-    ): cint
+    ): cbool
 
     proc SDL_SetNumberProperty(
       props     : PropertiesID,
       name      : cstring,
       value     : int64
-    ): cint
+    ): cbool
 
     # int SDL_ClearProperty(SDL_PropertiesID props, const char *name)
     # SDL_bool SDL_GetBooleanProperty(SDL_PropertiesID props, const char *name, SDL_bool default_value)
@@ -719,24 +756,24 @@ dlgencalls "sdl3", lib_paths:
   # <SDL3/SDL_rect.h>                                                         #
   # ------------------------------------------------------------------------- #
 
-  # SDL_bool SDL_GetRectAndLineIntersection(const SDL_Rect *rect,
+  # bool SDL_GetRectAndLineIntersection(const SDL_Rect *rect,
   #     int *X1, int *Y1, int *X2, int *Y2)
-  # SDL_bool SDL_GetRectAndLineIntersectionFloat(const SDL_FRect *rect,
+  # bool SDL_GetRectAndLineIntersectionFloat(const SDL_FRect *rect,
   #     float *X1, float *Y1, float *X2, float *Y2)
-  # SDL_bool SDL_GetRectEnclosingPoints(const SDL_Point *points, int count,
+  # bool SDL_GetRectEnclosingPoints(const SDL_Point *points, int count,
   #     const SDL_Rect *clip, SDL_Rect *result)
-  # SDL_bool SDL_GetRectEnclosingPointsFloat(const SDL_FPoint *points,
+  # bool SDL_GetRectEnclosingPointsFloat(const SDL_FPoint *points,
   #     int count, const SDL_FRect *clip, SDL_FRect *result)
-  # SDL_bool SDL_GetRectIntersection(const SDL_Rect *A, const SDL_Rect *B,
+  # bool SDL_GetRectIntersection(const SDL_Rect *A, const SDL_Rect *B,
   #     proc SDL_Rect *result)
-  # SDL_bool SDL_GetRectIntersectionFloat(const SDL_FRect *A,
+  # bool SDL_GetRectIntersectionFloat(const SDL_FRect *A,
   #     const SDL_FRect *B, SDL_FRect *result)
-  # int SDL_GetRectUnion(const SDL_Rect *A, const SDL_Rect *B,
+  # bool SDL_GetRectUnion(const SDL_Rect *A, const SDL_Rect *B,
   #     proc SDL_Rect *result)
-  # int SDL_GetRectUnionFloat(const SDL_FRect *A, const SDL_FRect *B,
+  # bool SDL_GetRectUnionFloat(const SDL_FRect *A, const SDL_FRect *B,
   #     proc SDL_FRect *result)
-  # SDL_bool SDL_HasRectIntersection(const SDL_Rect *A, const SDL_Rect *B)
-  # SDL_bool SDL_HasRectIntersectionFloat(const SDL_FRect *A,
+  # bool SDL_HasRectIntersection(const SDL_Rect *A, const SDL_Rect *B)
+  # bool SDL_HasRectIntersectionFloat(const SDL_FRect *A,
   #     const SDL_FRect *B)
 
   # ------------------------------------------------------------------------- #
@@ -785,7 +822,7 @@ dlgencalls "sdl3", lib_paths:
     window_flags  : WindowFlags,
     window        : ptr Window,
     renderer      : ptr Renderer
-  ): cint
+  ): cbool
 
   proc SDL_DestroyRenderer(renderer: Renderer)
 
@@ -793,7 +830,7 @@ dlgencalls "sdl3", lib_paths:
 
   # int SDL_GL_BindTexture(SDL_Texture *texture, float *texw, float *texh)
   # int SDL_GL_UnbindTexture(SDL_Texture *texture)
-  # int SDL_GetCurrentRenderOutputSize(SDL_Renderer *renderer,
+  # bool SDL_GetCurrentRenderOutputSize(SDL_Renderer *renderer,
   #     int *w, int *h)
   # int SDL_GetNumRenderDrivers(void)
   # int SDL_GetRenderClipRect(SDL_Renderer *renderer, SDL_Rect *rect)
@@ -806,12 +843,11 @@ dlgencalls "sdl3", lib_paths:
   # const char *SDL_GetRenderDriver(int index)
   # SDL_Renderer * SDL_GetRendererFromTexture(SDL_Texture *texture);
   # int SDL_GetRenderLogicalPresentation(SDL_Renderer *renderer,
-  #     int *w, int *h, SDL_RendererLogicalPresentation *mode,
-  #     proc SDL_ScaleMode *scale_mode)
+  #     int *w, int *h, SDL_RendererLogicalPresentation *mode)
   # int SDL_GetRenderLogicalPresentationRect(SDL_Renderer *renderer, SDL_FRect *rect)
   # void *SDL_GetRenderMetalCommandEncoder(SDL_Renderer *renderer)
   # void *SDL_GetRenderMetalLayer(SDL_Renderer *renderer)
-  # int SDL_GetRenderOutputSize(SDL_Renderer *renderer, int *w, int *h)
+  # bool SDL_GetRenderOutputSize(SDL_Renderer *renderer, int *w, int *h)
   # SDL_PropertiesID SDL_GetRendererProperties(SDL_Renderer *renderer)
   # int SDL_GetRenderSafeArea(SDL_Renderer *renderer, SDL_Rect *rect)
   # int SDL_GetRenderScale(SDL_Renderer *renderer,
@@ -838,25 +874,25 @@ dlgencalls "sdl3", lib_paths:
   #     proc SDL_ScaleMode *scaleMode)
 
   proc SDL_LockTexture(texture: Texture, rect: ptr Rect, pixels: ptr pointer,
-                       pitch: ptr cint): cint
+                       pitch: ptr cint): cbool
 
   proc SDL_LockTextureToSurface(texture: Texture, rect: ptr Rect,
-                                surface: ptr SurfacePtr): cint
+                                surface: ptr SurfacePtr): cbool
 
-  proc SDL_GetTextureSize(texture: Texture, w, h: ptr cfloat): cint
+  proc SDL_GetTextureSize(texture: Texture, w, h: ptr cfloat): cbool
 
-  proc SDL_RenderClear(renderer: Renderer): cint
+  proc SDL_RenderClear(renderer: Renderer): cbool
 
   # SDL_bool SDL_RenderClipEnabled(SDL_Renderer *renderer)
 
   proc SDL_RenderCoordinatesFromWindow(renderer: Renderer,
                                        window_x, window_y: cfloat,
-                                       x, y: ptr cfloat): cint
+                                       x, y: ptr cfloat): cbool
 
   # int SDL_RenderCoordinatesToWindow(SDL_Renderer *renderer,
   #     float x, float y, float *window_x, float *window_y)
 
-  proc SDL_RenderFillRect(renderer: Renderer, rect: ptr FRect): cint
+  proc SDL_RenderFillRect(renderer: Renderer, rect: ptr FRect): cbool
 
   # int SDL_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects,
   #     int count)
@@ -868,7 +904,7 @@ dlgencalls "sdl3", lib_paths:
     num_vertices  : cint,
     indices       : ptr cint,
     num_indices   : cint
-  ): cint
+  ): cbool
 
   # int SDL_RenderGeometryRaw(SDL_Renderer *renderer,
   #                            SDL_Texture *texture,
@@ -884,12 +920,12 @@ dlgencalls "sdl3", lib_paths:
     y1        : cfloat,
     x2        : cfloat,
     y2        : cfloat
-  ): cint
+  ): cbool
 
   # int SDL_RenderLines(SDL_Renderer *renderer, const SDL_FPoint *points,
   #     int count)
 
-  proc SDL_RenderPoint(renderer: Renderer, x, y: cfloat): cint
+  proc SDL_RenderPoint(renderer: Renderer, x, y: cfloat): cbool
 
   # int SDL_RenderPoints(SDL_Renderer *renderer, const SDL_FPoint *points,
   #     int count)
@@ -898,13 +934,13 @@ dlgencalls "sdl3", lib_paths:
 
   # int SDL_RenderReadPixels(SDL_Renderer *renderer, const SDL_Rect *rect)
 
-  proc SDL_RenderRect(renderer: Renderer, rect: ptr FRect): cint
+  proc SDL_RenderRect(renderer: Renderer, rect: ptr FRect): cbool
 
   # int SDL_RenderRects(SDL_Renderer *renderer, const SDL_FRect *rects,
   #     int count)
 
   proc SDL_RenderTexture(renderer: Renderer, texture: Texture,
-                         srcrect, dstrect: ptr FRect): cint
+                         srcrect, dstrect: ptr FRect): cbool
 
   # int SDL_RenderTexture9Grid(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_FRect *srcrect, float left_width, float right_width, float top_height, float bottom_height, float scale, const SDL_FRect *dstrect);
 
@@ -916,53 +952,52 @@ dlgencalls "sdl3", lib_paths:
     angle     : cdouble,
     center    : ptr FPoint,
     flip      : FlipMode
-  ): cint
+  ): cbool
 
   # int SDL_RenderTextureTiled(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_FRect *srcrect, float scale, const SDL_FRect *dstrect)
 
   # SDL_bool SDL_RenderViewportSet(SDL_Renderer *renderer);
 
-  proc SDL_SetRenderClipRect(renderer: Renderer, rect: ptr Rect): cint
+  proc SDL_SetRenderClipRect(renderer: Renderer, rect: ptr Rect): cbool
 
   # int SDL_SetRenderColorScale(SDL_Renderer *renderer, float scale);
 
   proc SDL_SetRenderDrawBlendMode(
     renderer    : Renderer,
     blend_mode  : BlendMode
-  ): cint
+  ): cbool
 
-  proc SDL_SetRenderDrawColor(renderer: Renderer, r, g, b, a: byte): cint
+  proc SDL_SetRenderDrawColor(renderer: Renderer, r, g, b, a: byte): cbool
 
   # int SDL_SetRenderDrawColorFloat(SDL_Renderer *renderer, float r, float g, float b, float a);
 
   # int SDL_SetRenderLogicalPresentation(SDL_Renderer *renderer,
-  #     int w, int h, SDL_RendererLogicalPresentation mode,
-  #     proc SDL_ScaleMode scale_mode)
+  #     int w, int h, SDL_RendererLogicalPresentation mode)
 
   proc SDL_SetRenderScale(renderer: Renderer,
-                          scale_x, scale_y: cfloat): cint
+                          scale_x, scale_y: cfloat): cbool
 
-  proc SDL_SetRenderTarget(renderer: Renderer, texture: Texture): cint
+  proc SDL_SetRenderTarget(renderer: Renderer, texture: Texture): cbool
 
-  proc SDL_SetRenderVSync(renderer: Renderer, vsync: cint): cint
+  proc SDL_SetRenderVSync(renderer: Renderer, vsync: cint): cbool
 
-  proc SDL_SetRenderViewport(renderer: Renderer, rect: ptr Rect): cint
+  proc SDL_SetRenderViewport(renderer: Renderer, rect: ptr Rect): cbool
 
-  proc SDL_SetTextureAlphaMod(texture: Texture, alpha: byte): cint
+  proc SDL_SetTextureAlphaMod(texture: Texture, alpha: byte): cbool
 
   # int SDL_SetTextureAlphaModFloat(SDL_Texture *texture, float alpha);
 
   proc SDL_SetTextureBlendMode(
     texture     : Texture,
     blend_mode  : BlendMode
-  ): cint
+  ): cbool
 
-  proc SDL_SetTextureColorMod(texture: Texture, r, g, b: byte): cint
+  proc SDL_SetTextureColorMod(texture: Texture, r, g, b: byte): cbool
 
   # int SDL_SetTextureColorModFloat(SDL_Texture *texture, float r, float g, float b);
 
   proc SDL_SetTextureScaleMode(texture: Texture,
-                               scale_mode: ScaleMode): cint
+                               scale_mode: ScaleMode): cbool
 
   proc SDL_UnlockTexture(texture: Texture)
 
@@ -971,7 +1006,7 @@ dlgencalls "sdl3", lib_paths:
   #                         const Uint8 *UVplane, int UVpitch)
 
   proc SDL_UpdateTexture(texture: Texture, rect: ptr Rect, pixels: pointer,
-                         pitch: cint): cint
+                         pitch: cint): cbool
 
   # int SDL_UpdateYUVTexture(SDL_Texture *texture, const SDL_Rect *rect,
   #                          const Uint8 *Yplane, int Ypitch,
@@ -983,7 +1018,7 @@ dlgencalls "sdl3", lib_paths:
   # ------------------------------------------------------------------------- #
 
   # void SDL_CloseSensor(SDL_Sensor *sensor)
-  # int SDL_GetSensorData(SDL_Sensor *sensor, float *data, int num_values)
+  # bool SDL_GetSensorData(SDL_Sensor *sensor, float *data, int num_values)
   # SDL_Sensor *SDL_GetSensorFromInstanceID(SDL_SensorID instance_id)
   # SDL_SensorID SDL_GetSensorInstanceID(SDL_Sensor *sensor)
 
@@ -1055,7 +1090,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_LoadBMP_IO(src: IOStream, closeio: cint): SurfacePtr
 
-  proc SDL_LockSurface(surface: SurfacePtr): cint
+  proc SDL_LockSurface(surface: SurfacePtr): cbool
 
   # Uint32 SDL_MapSurfaceRGB(SDL_Surface *surface, Uint8 r, Uint8 g, Uint8 b)
   # Uint32 SDL_MapSurfaceRGBA(SDL_Surface *surface, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
@@ -1066,9 +1101,9 @@ dlgencalls "sdl3", lib_paths:
   # int SDL_ReadSurfacePixelFloat(SDL_Surface *surface, int x, int y, float *r, float *g, float *b, float *a)
   # void SDL_RemoveSurfaceAlternateImages(SDL_Surface *surface)
 
-  proc SDL_SaveBMP(surface: SurfacePtr, file: cstring): cint
+  proc SDL_SaveBMP(surface: SurfacePtr, file: cstring): cbool
 
-  proc SDL_SaveBMP_IO(surface: SurfacePtr, dst: IOStream, closeio: cint): cint
+  proc SDL_SaveBMP_IO(surface: SurfacePtr, dst: IOStream, closeio: cint): cbool
 
   # SDL_Surface * SDL_ScaleSurface(SDL_Surface *surface, int width, int height, SDL_ScaleMode scaleMode);
   # int SDL_SetSurfaceAlphaMod(SDL_Surface *surface, Uint8 alpha)
@@ -1077,15 +1112,16 @@ dlgencalls "sdl3", lib_paths:
   # SDL_bool SDL_SetSurfaceClipRect(SDL_Surface *surface,
   #     const SDL_Rect *rect)
 
-  proc SDL_SetSurfaceColorKey(surface: SurfacePtr, enabled: SdlBool,
-                              key: uint32): cint
+  proc SDL_SetSurfaceColorKey(surface: SurfacePtr, enabled: cbool,
+                              key: uint32): cbool
 
   # int SDL_SetSurfaceColorMod(SDL_Surface *surface,
   #     Uint8 r, Uint8 g, Uint8 b)
   # int SDL_SetSurfaceColorspace(SDL_Surface *surface, SDL_Colorspace colorspace)
-  # int SDL_SetSurfacePalette(SDL_Surface *surface, SDL_Palette *palette)
+
+  proc SDL_SetSurfacePalette(surface: SurfacePtr, palette: ptr Palette): cbool
   
-  proc SDL_SetSurfaceRLE(surface: SurfacePtr, enabled: SdlBool): cint
+  proc SDL_SetSurfaceRLE(surface: SurfacePtr, enabled: cbool): cbool
   
   # int SDL_SoftStretch(SDL_Surface *src, const SDL_Rect *srcrect,
   #     proc SDL_Surface *dst, const SDL_Rect *dstrect, SDL_ScaleMode scaleMode)
@@ -1096,7 +1132,7 @@ dlgencalls "sdl3", lib_paths:
   proc SDL_UnlockSurface(surface: SurfacePtr)
 
   proc SDL_WriteSurfacePixel(surface: SurfacePtr, x: cint, y: cint,
-                             r: byte, g: byte, b: byte, a: byte): cint
+                             r: byte, g: byte, b: byte, a: byte): cbool
 
   # int SDL_WriteSurfacePixelFloat(SDL_Surface *surface, int x, int y, float r, float g, float b, float a)
 
@@ -1128,7 +1164,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_GetTicksNS(): uint64
 
-  proc SDL_RemoveTimer(id: TimerID): SdlBool
+  proc SDL_RemoveTimer(id: TimerID): cbool
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_touch.h>                                                        #
@@ -1171,7 +1207,7 @@ dlgencalls "sdl3", lib_paths:
 
   # int SDL_DestroyWindowSurface(SDL_Window *window)
 
-  proc SDL_DisableScreenSaver(): cint
+  proc SDL_DisableScreenSaver(): cbool
 
   # SDL_EGLConfig SDL_EGL_GetCurrentEGLConfig(void)
   # SDL_EGLDisplay SDL_EGL_GetCurrentEGLDisplay(void)
@@ -1182,12 +1218,12 @@ dlgencalls "sdl3", lib_paths:
   #     proc SDL_EGLIntArrayCallback surfaceAttribCallback,
   #     proc SDL_EGLIntArrayCallback contextAttribCallback)
 
-  proc SDL_EnableScreenSaver(): cint
+  proc SDL_EnableScreenSaver(): cbool
 
   proc SDL_FlashWindow(
     window    : Window,
     operation : FlashOperation
-  ): cint
+  ): cbool
 
   # SDL_GLContext SDL_GL_CreateContext(SDL_Window *window)
   # int SDL_GL_DeleteContext(SDL_GLContext context)
@@ -1207,7 +1243,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_GetClosestFullscreenDisplayMode(display_id: DisplayID, w, h: cint,
                                            refresh_rate: cfloat,
-                                           include_high_density_modes: SdlBool): ptr DisplayMode
+                                           include_high_density_modes: cbool): ptr DisplayMode
 
   proc SDL_GetCurrentDisplayMode(display_id: DisplayID): ptr DisplayMode
 
@@ -1218,7 +1254,7 @@ dlgencalls "sdl3", lib_paths:
 
   # const SDL_DisplayMode *SDL_GetDesktopDisplayMode(SDL_DisplayID displayID)
 
-  proc SDL_GetDisplayBounds(display_id: DisplayID, rect: ptr Rect): cint
+  proc SDL_GetDisplayBounds(display_id: DisplayID, rect: ptr Rect): cbool
 
   proc SDL_GetDisplayContentScale(display_id: DisplayID): cfloat
 
@@ -1233,7 +1269,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_GetDisplays(count: ptr cint): ptr UncheckedArray[DisplayID]
 
-  proc SDL_GetDisplayUsableBounds(display_id: DisplayID, rect: ptr Rect): cint
+  proc SDL_GetDisplayUsableBounds(display_id: DisplayID, rect: ptr Rect): cbool
 
   proc SDL_GetFullscreenDisplayModes(display_id: DisplayID,
                                      count: ptr cint): ptr UncheckedArray[ptr DisplayMode]
@@ -1269,13 +1305,13 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_GetWindowID(window: Window): WindowID
 
-  proc SDL_GetWindowKeyboardGrab(window: Window): SdlBool
+  proc SDL_GetWindowKeyboardGrab(window: Window): cbool
 
-  proc SDL_GetWindowMaximumSize(window: Window, w, h: ptr cint): cint
+  proc SDL_GetWindowMaximumSize(window: Window, w, h: ptr cint): cbool
 
-  proc SDL_GetWindowMinimumSize(window: Window, w, h: ptr cint): cint
+  proc SDL_GetWindowMinimumSize(window: Window, w, h: ptr cint): cbool
 
-  proc SDL_GetWindowMouseGrab(window: Window): SdlBool
+  proc SDL_GetWindowMouseGrab(window: Window): cbool
 
   # SDL_GetWindowMouseRect(
   #   window: Window
@@ -1287,7 +1323,7 @@ dlgencalls "sdl3", lib_paths:
 
   proc SDL_GetWindowPixelFormat(window: Window): PixelFormatEnum
 
-  proc SDL_GetWindowPosition(window: Window, x, y: ptr cint): cint
+  proc SDL_GetWindowPosition(window: Window, x, y: ptr cint): cbool
 
   # SDL_PropertiesID SDL_GetWindowProperties(SDL_Window *window)
 
@@ -1295,74 +1331,74 @@ dlgencalls "sdl3", lib_paths:
 
   # int SDL_GetWindowSafeArea(SDL_Window *window, SDL_Rect *rect);
 
-  proc SDL_GetWindowSize(window: Window, width, height: ptr cint): cint
+  proc SDL_GetWindowSize(window: Window, width, height: ptr cint): cbool
 
   # int SDL_GetWindowSizeInPixels(SDL_Window *window, int *w, int *h)
   # SDL_Surface *SDL_GetWindowSurface(SDL_Window *window)
   # int SDL_GetWindowSurfaceVSync(SDL_Window *window, int *vsync)
   # const char *SDL_GetWindowTitle(SDL_Window *window)
 
-  proc SDL_HideWindow(window: Window): cint
+  proc SDL_HideWindow(window: Window): cbool
 
   # int SDL_MaximizeWindow(SDL_Window *window)
   # int SDL_MinimizeWindow(SDL_Window *window)
 
-  proc SDL_RaiseWindow(window: Window): cint
+  proc SDL_RaiseWindow(window: Window): cbool
 
   # int SDL_RestoreWindow(SDL_Window *window)
 
-  proc SDL_ScreenSaverEnabled(): SdlBool
+  proc SDL_ScreenSaverEnabled(): cbool
 
   # int SDL_SetWindowAlwaysOnTop(SDL_Window *window, SDL_bool on_top)
 
   # int SDL_SetWindowAspectRatio(SDL_Window *window, float min_aspect, float max_aspect)
 
-  proc SDL_SetWindowBordered(window: Window, bordered: SdlBool): cint
+  proc SDL_SetWindowBordered(window: Window, bordered: cbool): cbool
 
   # int SDL_SetWindowFocusable(SDL_Window *window, SDL_bool focusable)
 
-  proc SDL_SetWindowFullscreen(window: Window, fullscreen: SdlBool): cint
+  proc SDL_SetWindowFullscreen(window: Window, fullscreen: cbool): cbool
 
   proc SDL_SetWindowFullscreenMode(window: Window,
-                                   mode: ptr DisplayMode): cint
+                                   mode: ptr DisplayMode): cbool
 
   # int SDL_SetWindowHitTest(SDL_Window *window, SDL_HitTest callback,
   #     void *callback_data)
 
-  proc SDL_SetWindowIcon(window: Window, surface: SurfacePtr): cint
+  proc SDL_SetWindowIcon(window: Window, surface: SurfacePtr): cbool
 
-  proc SDL_SetWindowKeyboardGrab(window: Window, grabbed: SdlBool): cint
+  proc SDL_SetWindowKeyboardGrab(window: Window, grabbed: cbool): cbool
 
-  proc SDL_SetWindowMaximumSize(window: Window, max_w, max_h: cint): cint
+  proc SDL_SetWindowMaximumSize(window: Window, max_w, max_h: cint): cbool
 
-  proc SDL_SetWindowMinimumSize(window: Window, min_w, min_h: cint): cint
+  proc SDL_SetWindowMinimumSize(window: Window, min_w, min_h: cint): cbool
 
   # int SDL_SetWindowModalFor(SDL_Window *modal_window,
   #     proc SDL_Window *parent_window)
 
-  proc SDL_SetWindowMouseGrab(window: Window, grabbed: SdlBool): cint
+  proc SDL_SetWindowMouseGrab(window: Window, grabbed: cbool): cbool
 
   # int SDL_SetWindowMouseRect(SDL_Window *window, const SDL_Rect *rect)
   # int SDL_SetWindowOpacity(SDL_Window *window, float opacity)
 
-  proc SDL_SetWindowPosition(window: Window, x, y: cint): cint
+  proc SDL_SetWindowPosition(window: Window, x, y: cint): cbool
 
-  proc SDL_SetWindowResizable(window: Window, ontop: SdlBool): cint
+  proc SDL_SetWindowResizable(window: Window, ontop: cbool): cbool
 
   # int SDL_SetWindowShape(SDL_Window *window, SDL_Surface *shape);
 
-  proc SDL_SetWindowSize(window: Window, x, y: cint): cint
+  proc SDL_SetWindowSize(window: Window, x, y: cint): cbool
 
   # int SDL_SetWindowSurfaceVSync(SDL_Window *window, int vsync)
 
-  proc SDL_SetWindowTitle(window: Window, title: cstring): cint
+  proc SDL_SetWindowTitle(window: Window, title: cstring): cbool
 
-  proc SDL_ShowWindow(window: Window): cint
+  proc SDL_ShowWindow(window: Window): cbool
 
   # int SDL_ShowWindowSystemMenu(SDL_Window *window, int x, int y)
   # int SDL_SyncWindow(SDL_Window *window)
 
-  proc SDL_UpdateWindowSurface(window: Window): cint
+  proc SDL_UpdateWindowSurface(window: Window): cbool
 
   # int SDL_UpdateWindowSurfaceRects(SDL_Window *window,
   #     const SDL_Rect *rects, int numrects)

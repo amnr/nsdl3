@@ -5,7 +5,7 @@
 
 {.push raises: [].}
 
-when NimMajor >= 2 or defined nimPreviewSlimSystem:
+when defined nimPreviewSlimSystem:
   import std/assertions
 
 import nsdl3
@@ -17,7 +17,7 @@ const
 proc draw_checkerboard(texture: Texture) =
   var format: PixelFormatEnum
   var access, width, height: int
-  # assert QueryTexture(texture, format, access, width, height)
+  assert QueryTexture(texture, format, access, width, height)
   echo format, ' ', access, ' ', width, " x ", height
 
   var buf = newSeqUninitialized[byte](width * height * uint32.sizeof)
