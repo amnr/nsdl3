@@ -82,6 +82,7 @@ type
     PROP_RENDERER_VULKAN_GRAPHICS_QUEUE_FAMILY_INDEX_NUMBER = cstring"SDL.renderer.vulkan.graphics_queue_family_index"
     PROP_RENDERER_VULKAN_PRESENT_QUEUE_FAMILY_INDEX_NUMBER  = cstring"SDL.renderer.vulkan.present_queue_family_index"
     PROP_RENDERER_VULKAN_SWAPCHAIN_IMAGE_COUNT_NUMBER       = cstring"SDL.renderer.vulkan.swapchain_image_count"
+    PROP_RENDERER_GPU_DEVICE_POINTER                        = cstring"SDL.renderer.gpu.device"
 
   TextureCreateProperty* = enum
     PROP_TEXTURE_CREATE_COLORSPACE_NUMBER           = cstring"SDL.texture.colorspace"
@@ -135,6 +136,10 @@ type
 # XXX:
 # define SDL_RENDERER_VSYNC_DISABLED 0
 #define SDL_RENDERER_VSYNC_ADAPTIVE (-1)
+
+const
+  DEBUG_TEXT_FONT_CHARACTER_SIZE* = 8
+    ##  The size, in pixels, of a single `RenderDebugText` character.
 
 # --------------------------------------------------------------------------- #
 #   Sanity checks                                                             #

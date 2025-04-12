@@ -7,10 +7,18 @@
 {.push raises: [].}
 
 from sdl3mouse import MouseID
+from sdl3touch import TouchID
 
 type
   PenID* = distinct uint32
     ##  `PenIDs` identify pens uniquely within a session.
+
+const
+  PEN_MOUSEID* = cast[MouseID](-2)
+    ##  `MouseID` for mouse events simulated with pen input.
+
+  PEN_TOUCHID* = cast[TouchID](-2)
+    ##  `TouchID` for touch events simulated with pen input.
 
 type
   PenInputFlags* = distinct uint32

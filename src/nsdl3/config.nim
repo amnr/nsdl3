@@ -22,6 +22,9 @@ const
   use_dialog*     {.booldefine: "sdl3.dialog"     .}  = true or ndoc
     ##  Include dialog functions.
 
+  use_filesystem* {.booldefine: "sdl3.filesystem" .}  = true or ndoc
+    ##  Include filesystem functions.
+
   use_gamepad*    {.booldefine: "sdl3.gamepad"    .}  = true or ndoc
     ##  Include gamepad functions.
 

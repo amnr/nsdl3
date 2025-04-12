@@ -1960,7 +1960,6 @@ proc RemoveTimer*(id: TimerID): bool {.discardable, inline.} =
   ##  ```c
   ##  SDL_bool SDL_RemoveTimer(SDL_TimerID id)
   ##  ```
-  {.warning: "print a warning?".}
   SDL_RemoveTimer id
 
 # --------------------------------------------------------------------------- #

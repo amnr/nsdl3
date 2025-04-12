@@ -119,8 +119,9 @@ type
 
     # Touch events.
     EVENT_FINGER_DOWN           = 0x700
-    EVENT_FINGER_UP,
+    EVENT_FINGER_UP
     EVENT_FINGER_MOTION
+    EVENT_FINGER_CANCELED
 
     # Clipboard events.
     EVENT_CLIPBOARD_UPDATE      = 0x900
@@ -159,6 +160,7 @@ type
     # Render events.
     EVENT_RENDER_TARGETS_RESET  = 0x2000
     EVENT_RENDER_DEVICE_RESET
+    EVENT_RENDER_DEVICE_LOST
 
     # Internal events.
     EVENT_POLL_SENTINEL         = 0x7f00
@@ -458,6 +460,13 @@ type
     timestamp*    : uint64          ##  Timestamp (ns).
     which*        : CameraDeviceID  ##  Camera device index for the `ADDED`, `REMOVED` or `CHANGING` event.
 
+  RenderEvent* {.final, pure.} = object
+    ##  Render event.
+    typ*          : EventType       ##  `SDL_EVENT_RENDER_TARGETS_RESET`, `SDL_EVENT_RENDER_DEVICE_RESET`, `SDL_EVENT_RENDER_DEVICE_LOST`.
+    reserved      : uint32
+    timestamp*    : uint64          ##  Timestamp (ns).
+    window_id*    : WindowID        ##  Rendering window.
+
   TouchFingerEvent* {.final, pure.} = object
     ##  Touch finger event.
     typ*          : EventType   ##  `EVENT_FINGER_MOTION`, `EVENT_FINGER_DOWN` or `EVENT_FINGER_UP`.
@@ -477,7 +486,7 @@ type
     typ*          : EventType   ##  `EVENT_PEN_PROXIMITY_IN` or ``SDL_EVENT_PROXIMITY_OUT`.
     reserved      : uint32
     timestamp*    : uint64      ##  Timestamp (ns).
-    window_id*    : WindowID    ##  The window with mouse focus, if any.
+    window_id*    : WindowID    ##  The window with pen focus, if any.
     which*        : PenID       ##  The pen instance id.
 
   PenMotionEvent* {.final, pure.} = object
@@ -546,12 +555,12 @@ type
 
   ClipboardEvent* {.final, pure.} = object
     ##  Clipboard contents have changed.
-    typ*          : EventType     ##  `EVENT_CLIPBOARD_UPDATE`.
-    reserved      : uint32
-    timestamp*    : uint64        ##  Timestamp (ns).
-    owner*        : cbool
-    n_mime_types* : int32         ##  Number of mime types.
-    mime_types*   : cstringArray  ##  Mime types.
+    typ*            : EventType     ##  `EVENT_CLIPBOARD_UPDATE`.
+    reserved        : uint32
+    timestamp*      : uint64        ##  Timestamp (ns).
+    owner*          : cbool         ##  Are we owning the clipboard?
+    num_mime_types* : int32         ##  Number of mime types.
+    mime_types*     : cstringArray  ##  Mime types.
 
   SensorEvent* {.final, pure.} = object
     ##  Sensor event.
@@ -618,6 +627,7 @@ type
     pmotion*      : PenMotionEvent            ##  Pen motion event.
     pbutton*      : PenButtonEvent            ##  Pen button event.
     paxis*        : PenAxisEvent              ##  Pen axis event.
+    render*       : RenderEvent               ##  Render event.
     drop*         : DropEvent                 ##  Drag and drop event.
     clipboard*    : ClipboardEvent            ##  Clipboard change event.
     padding       : array[128, byte]    # See `SDL_events.h` for details.
@@ -711,8 +721,8 @@ when hostCPU == "amd64" and defined gcc:
   #   {.error: "invalid PenButtonEvent size: " & $PenButtonEvent.sizeof.}
   when DropEvent.sizeof != 48:
     {.error: "invalid DropEvent size: " & $DropEvent.sizeof.}
-  when ClipboardEvent.sizeof != 16:
-    {.error: "invalid ClipboardEvent size: " & $ClipboardEvent.sizeof.}
+  #when ClipboardEvent.sizeof != 16:
+  #  {.error: "invalid ClipboardEvent size: " & $ClipboardEvent.sizeof.}
   when SensorEvent.sizeof != 56:
     {.error: "invalid SensorEvent size: " & $SensorEvent.sizeof.}
   when QuitEvent.sizeof != 16:

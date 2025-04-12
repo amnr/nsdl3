@@ -133,11 +133,13 @@ type
     ##  OpenGL context.
 
 type
-  EGLDisplay*   = ptr object
-  EGLConfig*    = ptr object
-  EGLSurface*   = ptr object
+  EGLDisplay*   = ptr object      ##  Opaque type for an EGL display.
+  EGLConfig*    = ptr object      ##  Opaque type for an EGL config.
+  EGLSurface*   = ptr object      ##  Opaque type for an EGL surface.
   EGLAttrib*    = ptr cint     # XXX: distinct
+    ##  An EGL attribute, used when creating an EGL context.
   EGLint*       = distinct cint
+    ##  An EGL integer attribute, used when creating an EGL surface.
 
 type
   EGLAttribArrayCallback* = proc (): ptr EGLAttrib  {.cdecl.}
@@ -253,6 +255,7 @@ type
     PROP_WINDOW_KMSDRM_GBM_DEVICE_POINTER       = cstring"SDL.window.kmsdrm.gbm_dev"
     PROP_WINDOW_COCOA_WINDOW_POINTER            = cstring"SDL.window.cocoa.window"
     PROP_WINDOW_COCOA_METAL_VIEW_TAG_NUMBER     = cstring"SDL.window.cocoa.metal_view_tag"
+    PROP_WINDOW_OPENVR_OVERLAY_ID               = cstring"SDL.window.openvr.overlay_id"
     PROP_WINDOW_VIVANTE_DISPLAY_POINTER         = cstring"SDL.window.vivante.display"
     PROP_WINDOW_VIVANTE_WINDOW_POINTER          = cstring"SDL.window.vivante.window"
     PROP_WINDOW_VIVANTE_SURFACE_POINTER         = cstring"SDL.window.vivante.surface"
@@ -264,6 +267,7 @@ type
     PROP_WINDOW_WAYLAND_SURFACE_POINTER         = cstring"SDL.window.wayland.surface"
     PROP_WINDOW_WAYLAND_EGL_WINDOW_POINTER      = cstring"SDL.window.wayland.egl_window"
     PROP_WINDOW_WAYLAND_XDG_SURFACE_POINTER     = cstring"SDL.window.wayland.xdg_surface"
+    PROP_WINDOW_WAYLAND_VIEWPORT_POINTER        = cstring"SDL.window.wayland.viewport"
     PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_POINTER    = cstring"SDL.window.wayland.xdg_toplevel"
     PROP_WINDOW_WAYLAND_XDG_TOPLEVEL_EXPORT_HANDLE_POINTER  = cstring"SDL.window.wayland.xdg_toplevel_export_handle"
     PROP_WINDOW_WAYLAND_XDG_POPUP_POINTER       = cstring"SDL.window.wayland.xdg_popup"

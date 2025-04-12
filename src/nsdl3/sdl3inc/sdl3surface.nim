@@ -32,14 +32,15 @@ type
 
   ScaleMode* {.size: cint.sizeof.} = enum
     ##  Textture scaling mode.
-    SCALEMODE_NEAREST     ##  Nearest pixel sampling.
-    SCALEMODE_LINEAR      ##  Linear filtering.
+    SCALEMODE_INVALID = -1
+    SCALEMODE_NEAREST       ##  Nearest pixel sampling.
+    SCALEMODE_LINEAR        ##  Linear filtering.
 
   FlipMode* {.size: cint.sizeof.} = enum
     ##  The flip mode.
-    FLIP_NONE           ##  Do not flip.
-    FLIP_HORIZONTAL     ##  Flip horizontally.
-    FLIP_VERTICAL       ##  Flip vertically.
+    FLIP_NONE               ##  Do not flip.
+    FLIP_HORIZONTAL         ##  Flip horizontally.
+    FLIP_VERTICAL           ##  Flip vertically.
 
 type
   Surface* {.bycopy, final, pure.} = object
@@ -81,5 +82,7 @@ type
     PROP_SURFACE_SDR_WHITE_POINT_FLOAT    = cstring"SDL.surface.SDR_white_point"
     PROP_SURFACE_HDR_HEADROOM_FLOAT       = cstring"SDL.surface.HDR_headroom"
     PROP_SURFACE_TONEMAP_OPERATOR_STRING  = cstring"SDL.surface.tonemap"
+    PROP_SURFACE_HOTSPOT_X_NUMBER         = cstring"SDL.surface.hotspot.x"
+    PROP_SURFACE_HOTSPOT_Y_NUMBER         = cstring"SDL.surface.hotspot.y"
 
 # vim: set sts=2 et sw=2:

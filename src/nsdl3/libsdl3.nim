@@ -19,6 +19,8 @@ when use_clipboard:
 when use_dialog:
   import sdl3inc/sdl3dialog
 import sdl3inc/sdl3events
+#when use_filesystem:
+#  import sdl3inc/sdl3filesystem
 # XXX: gamepad
 # XXX: haptic
 # XXX: hidapi
@@ -68,6 +70,8 @@ else:
 # ==  SDL3 library object                                                  == #
 # =========================================================================== #
 
+{.push hint[GlobalVar]: off.}
+
 dlgencalls "sdl3", lib_paths:
 
   # ------------------------------------------------------------------------- #
@@ -76,6 +80,7 @@ dlgencalls "sdl3", lib_paths:
 
   when use_audio:
 
+    # bool SDLCALL SDL_AudioStreamDevicePaused(SDL_AudioStream *stream)
     # bool SDL_BindAudioStream(SDL_AudioDeviceID devid, SDL_AudioStream *stream)
     # bool SDL_BindAudioStreams(SDL_AudioDeviceID devid,
     #     proc SDL_AudioStream **streams, int num_streams)
@@ -146,6 +151,8 @@ dlgencalls "sdl3", lib_paths:
 
     # int SDL_GetSilenceValueForFormat(SDL_AudioFormat format)
     # SDL_bool SDL_AudioDevicePaused(SDL_AudioDeviceID dev)
+    # bool SDLCALL SDL_IsAudioDevicePhysical(SDL_AudioDeviceID devid)
+    # bool SDLCALL SDL_IsAudioDevicePlayback(SDL_AudioDeviceID devid)
     # bool SDL_LoadWAV(const char *path, SDL_AudioSpec *spec, Uint8 **audio_buf,
     #     Uint32 *audio_len)
     # bool SDL_LoadWAV_IO(SDL_IOStream * src, bool closeio,
@@ -285,6 +292,15 @@ dlgencalls "sdl3", lib_paths:
       allow_many        : cbool
     )
 
+    proc SDL_ShowSaveFileDialog(
+      callback          : DialogFileCallback,
+      userdata          : pointer,
+      window            : Window,
+      filters           : ptr DialogFileFilter,
+      nfilters          : cint,
+      default_location  : cstring
+    )
+
     proc SDL_ShowOpenFolderDialog(
       callback          : DialogFileCallback,
       userdata          : pointer,
@@ -293,13 +309,11 @@ dlgencalls "sdl3", lib_paths:
       allow_many        : cbool
     )
 
-    proc SDL_ShowSaveFileDialog(
+    proc SDL_ShowFileDialogWithProperties(
+      typ               : FileDialogType,
       callback          : DialogFileCallback,
       userdata          : pointer,
-      window            : Window,
-      filters           : ptr DialogFileFilter,
-      nfilters          : cint,
-      default_location  : cstring
+      props             : PropertiesID
     )
 
   # ------------------------------------------------------------------------- #
@@ -360,6 +374,12 @@ dlgencalls "sdl3", lib_paths:
   proc SDL_WaitEvent(event: ptr Event): cbool
 
   proc SDL_WaitEventTimeout(event: ptr Event, timeout_ms: int32): cbool
+
+  # ------------------------------------------------------------------------- #
+  # <SDL3/SDL_filesystem.h>                                                   #
+  # ------------------------------------------------------------------------- #
+
+  # TODO.
 
   # ------------------------------------------------------------------------- #
   # <SDL3/SDL_gamepad.h>                                                      #
@@ -526,6 +546,7 @@ dlgencalls "sdl3", lib_paths:
   # SDL_Log, SDL_LogCritical, SDL_LogDebug, SDL_LogError, SDL_LogInfo,
   # SDL_LogVerbose and SDL_LogWarn are emulated by calling SDL_LogMessage.
 
+  # SDL_DECLSPEC SDL_LogOutputFunction SDLCALL SDL_GetDefaultLogOutputFunction(void)
   # void SDL_LogGetOutputFunction(SDL_LogOutputFunction *callback,
   #                               void **userdata)
   # SDL_LogPriority SDL_GetLogPriority(int category)
@@ -892,6 +913,10 @@ dlgencalls "sdl3", lib_paths:
   # int SDL_RenderCoordinatesToWindow(SDL_Renderer *renderer,
   #     float x, float y, float *window_x, float *window_y)
 
+  # bool SDL_RenderDebugText(SDL_Renderer *renderer, float x, float y, const char *str)
+
+  # bool SDL_RenderDebugTextFormat(SDL_Renderer *renderer, float x, float y, const char *fmt, ...)
+
   proc SDL_RenderFillRect(renderer: Renderer, rect: ptr FRect): cbool
 
   # int SDL_RenderFillRects(SDL_Renderer *renderer, const SDL_FRect *rects,
@@ -943,6 +968,8 @@ dlgencalls "sdl3", lib_paths:
                          srcrect, dstrect: ptr FRect): cbool
 
   # int SDL_RenderTexture9Grid(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_FRect *srcrect, float left_width, float right_width, float top_height, float bottom_height, float scale, const SDL_FRect *dstrect);
+
+  # bool SDL_RenderTextureAffine(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_FRect *srcrect, const SDL_FPoint *origin, const SDL_FPoint *right, const SDL_FPoint *down);
 
   proc SDL_RenderTextureRotated(
     renderer  : Renderer,
@@ -1125,6 +1152,7 @@ dlgencalls "sdl3", lib_paths:
   
   # int SDL_SoftStretch(SDL_Surface *src, const SDL_Rect *srcrect,
   #     proc SDL_Surface *dst, const SDL_Rect *dstrect, SDL_ScaleMode scaleMode)
+  # extern SDL_DECLSPEC bool SDLCALL SDL_StretchSurface(SDL_Surface *src, const SDL_Rect *srcrect, SDL_Surface *dst, const SDL_Rect *dstrect, SDL_ScaleMode scaleMode)  # 3.4.0+.
   # SDL_bool SDL_SurfaceHasAlternateImages(SDL_Surface *surface)
   # SDL_bool SDL_SurfaceHasColorKey(SDL_Surface *surface)
   # SDL_bool SDL_SurfaceHasRLE(SDL_Surface *surface)
@@ -1416,6 +1444,8 @@ dlgencalls "sdl3", lib_paths:
   # SDL_FunctionPointer SDL_Vulkan_GetVkGetInstanceProcAddr(void)
   # int SDL_Vulkan_LoadLibrary(const char *path)
   # void SDL_Vulkan_UnloadLibrary(void)
+
+{.push hint[GlobalVar]: on.}
 
 # =========================================================================== #
 # ==  Loading/unloading functions                                          == #

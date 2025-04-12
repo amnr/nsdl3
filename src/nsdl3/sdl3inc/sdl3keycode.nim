@@ -12,6 +12,10 @@ type
 
 func `==`*(x, y: Keycode): bool {.borrow.}
 
+#const
+#  EXTENDED_MASK   = 1'u32 shl 29
+#  SCANCODE_MASK   = 1'u32 shl 30
+
 const
   SDLK_UNKNOWN*               = Keycode 0x00000000
   SDLK_RETURN*                = Keycode 0x0000000d
@@ -275,6 +279,7 @@ const
   KMOD_NONE*    = Keymod 0x0000
   KMOD_LSHIFT*  = Keymod 0x0001
   KMOD_RSHIFT*  = Keymod 0x0002
+  KMOD_LEVEL5*  = Keymod 0x0004
   KMOD_LCTRL*   = Keymod 0x0040
   KMOD_RCTRL*   = Keymod 0x0080
   KMOD_LALT*    = Keymod 0x0100

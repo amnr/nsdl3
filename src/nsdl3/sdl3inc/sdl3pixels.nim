@@ -32,7 +32,7 @@ type
     PIXELTYPE_ARRAYF32
     PIXELTYPE_INDEX2
 
-  BitmapOrder {.size: cint.sizeof.} = enum
+  BitmapOrder* {.size: cint.sizeof.} = enum
     ##  Bitmap pixel order (high bit to low bit).
     BITMAPORDER_NONE
     BITMAPORDER_4321
@@ -50,7 +50,7 @@ type
     PACKEDORDER_ABGR
     PACKEDORDER_BGRA
 
-  ArrayOrder {.size: cint.sizeof.} = enum
+  ArrayOrder* {.size: cint.sizeof.} = enum
     ##  Array component order, low byte to high byte.
     ARRAYORDER_NONE
     ARRAYORDER_RGB
@@ -140,6 +140,7 @@ type
     PIXELFORMAT_NV12          = 0x3231564e
     PIXELFORMAT_YV12          = 0x32315659
     PIXELFORMAT_YUY2          = 0x32595559
+    PIXELFORMAT_MJPG          = 0x47504a4d
     PIXELFORMAT_YVYU          = 0x55595659
     PIXELFORMAT_IYUV          = 0x56555949
     PIXELFORMAT_UYVY          = 0x59565955
@@ -318,6 +319,7 @@ type
     CHROMA_LOCATION_CENTER    = 2
     CHROMA_LOCATION_TOPLEFT   = 3
 
+#[
 func define_colorspace(typ: ColorType, range: ColorRange,
                        primaries: ColorPrimaries,
                        transfer: TransferCharacteristics,
@@ -326,6 +328,7 @@ func define_colorspace(typ: ColorType, range: ColorRange,
   ##  Colorspace definition.
   (typ.uint32 shl 28) or (range.uint32 shl 24) or (chroma.uint32 shl 20) or
   (primaries.uint32 shl 10) or (transfer.uint32 shl 5) or (matrix.uint32 shl 0)
+]#
 
 # XXX:
 #func COLORSPACETYPE(x)       (SDL_ColorType)(((X) >> 28) & 0x0F)

@@ -9,7 +9,7 @@
 from sdl3video import Window
 
 type
-  MessageBoxFlags* {.size: uint32.sizeof.} = distinct uint32
+  MessageBoxFlags* = distinct uint32
 
 func `+`*(a, b: MessageBoxFlags): MessageBoxFlags {.borrow.}
 func `or`*(a, b: MessageBoxFlags): MessageBoxFlags {.borrow.}
@@ -22,7 +22,7 @@ const
   MESSAGEBOX_BUTTONS_RIGHT_TO_LEFT* = MessageBoxFlags 0x00000100  ##  Buttons placed right to left.
 
 type
-  MessageBoxButtonFlags* {.size: uint32.sizeof.} = distinct uint32
+  MessageBoxButtonFlags* = distinct uint32
 
 const
   MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT*  = MessageBoxButtonFlags 0x00000001  ##  Default button when return is hit.

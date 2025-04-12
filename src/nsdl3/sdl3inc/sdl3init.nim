@@ -40,6 +40,9 @@ type
   AppQuit_func* = proc (appstate: pointer, res: AppResult) {.cdecl.}
 
 type
+  MainThreadCallback* = proc (userdata: pointer) {.cdecl.}
+
+type
   AppMetadataProperty* = enum
     PROP_APP_METADATA_NAME_STRING       = cstring"SDL.app.metadata.name"
     PROP_APP_METADATA_VERSION_STRING    = cstring"SDL.app.metadata.version"

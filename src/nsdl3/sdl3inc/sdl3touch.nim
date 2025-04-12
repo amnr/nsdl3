@@ -10,9 +10,13 @@ from sdl3mouse import MouseID
 
 type
   TouchID*  = uint64
+    ##  A unique ID for a touch device.
+
   FingerID* = uint64
+    ##  A unique ID for a single finger on a touch device.
 
   TouchDeviceType* {.size: cint.sizeof.} = enum
+    ##  An enum that describes the type of a touch device.
     TOUCH_DEVICE_INVALID  = -1
     TOUCH_DEVICE_DIRECT
     TOUCH_DEVICE_INDIRECT_ABSOLUTE
